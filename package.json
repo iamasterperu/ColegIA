@@ -1,0 +1,11 @@
+{
+  "name": "colegia",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "empaquetar": "node scripts/empaquetar-estaticos.mjs",
+    "dev": "npm run empaquetar && wrangler dev",
+    "deploy": "npm run empaquetar && wrangler deploy"
+  },
+  "devDependencies": { "wrangler": "^4" }
+}

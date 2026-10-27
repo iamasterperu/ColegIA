@@ -1,0 +1,19 @@
+name = "colegia"
+main = "src/sin-assets.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "colegia"
+database_id = "68132023-394a-4430-a720-bcdaf4c0ca0f"
+migrations_dir = "migrations"
+
+[ai]
+binding = "AI"
+
+# Cada hora de 8 a. m. a 5 p. m. hora de Lima (13 a 22 UTC)
+[triggers]
+crons = ["0 13-22 * * *"]
+
+# Secretos (no van aquí): npx wrangler secret put MASTER_KEY
