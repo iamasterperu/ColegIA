@@ -11,6 +11,7 @@ DB._raw.exec(`INSERT INTO colegios (id, slug, nombre, es_demo, direccion) VALUES
 DB._raw.exec(`INSERT INTO info_colegio (colegio_id, clave, valor) VALUES (1,'pension','Matrícula S/ 450 · Pensión S/ 520'),(1,'visitas','Martes 10:00\nJueves 15:00'),(1,'calendario','3 mar: inicio de clases'),(1,'horarios','Primaria 7:45-14:30')`);
 DB._raw.exec(`INSERT INTO faq (colegio_id, palabras, respuesta) VALUES (1,'uniforme','El uniforme se compra en la tienda autorizada.')`);
 DB._raw.exec(`INSERT INTO apoderados (id, colegio_id, nombres, apellidos, telefono) VALUES (1,1,'Rosa','Quispe','51911111111'); INSERT INTO usuarios (colegio_id, nombre, email, rol, clave, apoderado_id) VALUES (1,'Ana Torres','d@x.pe','direccion','x',NULL),(1,'Rosa Quispe','p@x.pe','padre','x',1);`);
+DB._raw.exec(`INSERT INTO alumnos (id, colegio_id, codigo, nombres, apellidos, nombre_busqueda, nivel, grado) VALUES (1,1,'AL0001','Mateo','Quispe','quispe mateo','Primaria','2° Primaria'); INSERT INTO alumno_apoderado (alumno_id, apoderado_id) VALUES (1,1);`);
 const colegio = DB._raw.prepare('SELECT * FROM colegios WHERE id=1').get();
 const conexion = { colegio, modo: 'simulado' };
 const dec = (r) => r.map((x) => x.texto).join(' | ');
