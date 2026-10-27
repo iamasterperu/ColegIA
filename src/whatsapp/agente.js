@@ -15,6 +15,7 @@ import { registrarEntregas } from './roles/docente.js';
 import { notasPorFoto } from './roles/registro.js';
 import { cargaImagen, cargaExcel, confirmarUtiles } from './roles/carga.js';
 import { leerImagen, hayIA } from '../ia/modelo.js';
+import { responderFamilia, informeGeneral, infoColegio, BIENVENIDA_FAMILIA } from './roles/admision.js';
 
 const menuDe = (persona, colegio) => (persona.rol === 'padre' ? menuPadre(persona, colegio)
   : persona.rol === 'alumno' ? menuAlumno(persona, colegio) : menuPersonal(persona, colegio));
@@ -27,7 +28,8 @@ const introDemo = (colegio) =>
   '• *CONTADORA* — cobranza, vouchers, registrar pagos\n' +
   '• *SECRETARIA* — fotos de listas y fichas, avisos, bandeja\n' +
   '• *PADRE* — pagos, notas, útiles que faltan, justificar faltas\n' +
-  '• *ALUMNO* — tutor de IA que no da la respuesta\n\n' +
+  '• *ALUMNO* — tutor de IA que no da la respuesta\n' +
+  '• *FAMILIA* — una familia interesada pregunta por pensiones y agenda una visita\n\n' +
   'Para cambiar después, escribe *CAMBIAR ROL*. Los datos son ficticios.';
 
 /**
@@ -73,6 +75,14 @@ export async function procesarEntrante(env, conexion, entrada) {
   const texto = (entrada.tipo === 'audio' ? entrada.transcripcion : entrada.texto) || '';
   const t = normalizar(texto);
 
+  // ---- Familia interesada (número no registrado): admisiones e informes públicos ----
+  const atenderFamilia = async () => {
+    const pend = await leerPendiente(env, colegio, tel);
+    const r = await responderFamilia(env, colegio, tel, texto, pend?.accion === 'adm' ? pend.datos : null);
+    return typeof r === 'string' ? responder(r) : responder(r.texto, { porAtender: r.porAtender, motivo: r.motivo });
+  };
+  const admisionActiva = async () => colegio.es_demo || (await infoColegio(env, colegio)).admision_activa === '1';
+
   // ---- Colegio demo: el celular elige un rol ----
   if (colegio.es_demo) {
     const pedido = t.match(/^(?:soy (?:el |la |un |una )?|modo |probar como |rol )?(padre|mama|apoderado|profesor|profesora|docente|contador|contadora|contabilidad|secretaria|director|directora|direccion|alumno|alumna|estudiante)$/);
@@ -89,9 +99,17 @@ export async function procesarEntrante(env, conexion, entrada) {
       await env.DB.prepare('DELETE FROM wa_identidad_demo WHERE colegio_id = ? AND telefono = ?').bind(colegio.id, tel).run();
       return responder(introDemo(colegio));
     }
-    if (!persona) return responder(introDemo(colegio));
+    if (!persona) {
+      if (/^(familia|familia interesada|interesado|interesada|admision|admisiones|visitante)$/.test(t)) {
+        await guardarPendiente(env, colegio, tel, 'adm', { paso: 'menu' });
+        return responder(BIENVENIDA_FAMILIA(colegio));
+      }
+      if ((await leerPendiente(env, colegio, tel))?.accion === 'adm') return atenderFamilia();
+      return responder(introDemo(colegio));
+    }
   }
 
+  if (!persona && await admisionActiva()) return atenderFamilia();
   if (!persona) {
     return responder(`Hola 👋. Este número no está registrado en *${colegio.nombre}*. Por seguridad solo damos información a padres, alumnos y personal registrados. Acércate a secretaría para registrar tu número.`, { porAtender: true });
   }
@@ -228,6 +246,10 @@ export async function procesarEntrante(env, conexion, entrada) {
       await borrarPendiente(env, colegio, tel);
       interpretado = { intencion: pendiente.datos.intencion, consulta: texto, extra: pendiente.datos.extra };
     }
+  }
+  if (!interpretado && porReglas(persona.rol, texto).intencion === 'desconocido') {
+    const g = await informeGeneral(env, colegio, t);
+    if (g) return responder(g);
   }
   interpretado ||= await interpretar(env, persona.rol, texto);
   const contexto = {

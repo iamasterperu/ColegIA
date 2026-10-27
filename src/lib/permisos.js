@@ -19,7 +19,7 @@ export const PERMISOS = {
     'utiles.ver', 'utiles.editar', 'panel.ver', 'auditoria.ver', 'usuarios.gestionar',
     'ajustes.editar', 'whatsapp.ver', 'whatsapp.responder', 'consentimientos.ver',
     'consentimientos.registrar', 'arco.gestionar',
-    'importar.alumnos', 'importar.pagos', 'importar.utiles',
+    'importar.alumnos', 'importar.pagos', 'importar.utiles', 'admision.ver', 'admision.editar', 'informes.editar',
   ],
   contabilidad: [
     'alumnos.buscar', 'ficha.personal', 'ficha.apoderados', 'ficha.pagos', 'ficha.consentimientos',
@@ -31,7 +31,7 @@ export const PERMISOS = {
     'ficha.pagos_estado', 'ficha.salud', 'ficha.mensajes', 'ficha.consentimientos',
     'utiles.ver', 'utiles.editar', 'whatsapp.ver', 'whatsapp.responder',
     'consentimientos.ver', 'consentimientos.registrar', 'arco.gestionar',
-    'importar.alumnos', 'importar.utiles',
+    'importar.alumnos', 'importar.utiles', 'admision.ver', 'admision.editar', 'informes.editar',
   ],
   // Profesor: solo los alumnos de sus secciones, sin pagos ni datos de contacto completos.
   profesor: ['alumnos.buscar', 'ficha.personal', 'ficha.academico', 'ficha.salud_alertas', 'utiles.ver'],

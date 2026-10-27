@@ -11,6 +11,7 @@ import { rutasWhatsapp, rutasWebhook } from './rutas/whatsapp.js';
 import { rutasCumplimiento } from './rutas/cumplimiento.js';
 import { rutasAdmin } from './rutas/admin.js';
 import { rutasImportar } from './rutas/importar.js';
+import { rutasAdmision } from './rutas/admision.js';
 import { limpiar } from './lib/limpieza.js';
 import { rutasDocente } from './rutas/docente.js';
 import { rutasDocumentosPublicos } from './ia/documentos.js';
@@ -20,7 +21,7 @@ import { cargarConexion } from './whatsapp/envio.js';
 
 const router = new Router();
 [rutasAuth, rutasAlumnos, rutasPagos, rutasUtiles, rutasPanel, rutasWhatsapp, rutasWebhook,
-  rutasCumplimiento, rutasAdmin, rutasImportar, rutasDocente, rutasDocumentosPublicos].forEach((registrar) => registrar(router));
+  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos].forEach((registrar) => registrar(router));
 
 const PUBLICAS = ['/api/login', '/api/logout'];
 

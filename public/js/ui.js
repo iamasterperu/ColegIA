@@ -99,5 +99,6 @@ export const ACCIONES = {
   revocar_consentimiento: 'Revocó consentimiento', solicitud_arco: 'Envió solicitud ARCO', atender_arco: 'Atendió solicitud ARCO',
   descargar_mis_datos: 'Descargó sus datos', crear_usuario: 'Creó usuario', editar_usuario: 'Editó usuario', editar_ajustes: 'Editó ajustes',
   cambiar_clave: 'Cambió su contraseña', guardar_lista_utiles: 'Guardó lista de útiles', borrar_lista_utiles: 'Borró lista de útiles',
+  editar_informes: 'Editó la información del colegio', editar_demo: 'Editó la demo',
   avisar_lista_utiles: 'Avisó lista de útiles', importar_alumnos: 'Importó alumnos', importar_pagos: 'Importó pagos',
 };

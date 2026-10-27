@@ -1,0 +1,35 @@
+import { crearDB } from './d1shim.mjs';
+import { procesarEntrante } from '../src/whatsapp/agente.js';
+import assert from 'node:assert/strict';
+import { validarRuc } from '../src/lib/ruc.js';
+
+assert.equal(validarRuc('20123456781'), validarRuc('20123456781'));
+assert.ok(validarRuc('123'));
+const DB = crearDB(['migrations/0000_esquema_base.sql', 'migrations/0001_admision_informes_demo.sql']);
+const env = { DB };
+DB._raw.exec(`INSERT INTO colegios (id, slug, nombre, es_demo, direccion) VALUES (1,'san-martin','Colegio San Martín',1,'Av. Huaylas 123, Chorrillos')`);
+DB._raw.exec(`INSERT INTO info_colegio (colegio_id, clave, valor) VALUES (1,'pension','Matrícula S/ 450 · Pensión S/ 520'),(1,'visitas','Martes 10:00\nJueves 15:00'),(1,'calendario','3 mar: inicio de clases'),(1,'horarios','Primaria 7:45-14:30')`);
+DB._raw.exec(`INSERT INTO faq (colegio_id, palabras, respuesta) VALUES (1,'uniforme','El uniforme se compra en la tienda autorizada.')`);
+DB._raw.exec(`INSERT INTO apoderados (id, colegio_id, nombres, apellidos, telefono) VALUES (1,1,'Rosa','Quispe','51911111111'); INSERT INTO usuarios (colegio_id, nombre, email, rol, clave, apoderado_id) VALUES (1,'Ana Torres','d@x.pe','direccion','x',NULL),(1,'Rosa Quispe','p@x.pe','padre','x',1);`);
+const colegio = DB._raw.prepare('SELECT * FROM colegios WHERE id=1').get();
+const conexion = { colegio, modo: 'simulado' };
+const dec = (r) => r.map((x) => x.texto).join(' | ');
+const dice = async (tel, texto) => dec(await procesarEntrante(env, conexion, { telefono: tel, texto, tipo: 'texto' }));
+let r;
+r = await dice('51900000001', 'hola'); assert.match(r, /Soy el asistente demo|ColegIA|Esta es la demostración/);
+r = await dice('51900000001', 'familia'); assert.match(r, /asistente virtual/);
+r = await dice('51900000001', 'cuanto cuesta la pension'); assert.match(r, /S\/ 520/);
+r = await dice('51900000001', 'uniforme'); assert.match(r, /tienda autorizada/);
+r = await dice('51900000001', 'que dias hay vacaciones'); console.log('vacaciones->', r.slice(0, 120));
+r = await dice('51900000001', '4'); assert.match(r, /nombre/);
+r = await dice('51900000001', 'María Pérez'); assert.match(r, /grado/);
+r = await dice('51900000001', '2.° de primaria'); assert.match(r, /Martes 10:00/);
+r = await dice('51900000001', '1'); assert.match(r, /Te esperamos/);
+assert.equal(DB._raw.prepare('SELECT COUNT(*) n FROM leads').get().n, 1);
+assert.equal(DB._raw.prepare('SELECT COUNT(*) n FROM visitas').get().n, 1);
+// registrado como padre demo: informe general
+r = await dice('51900000002', 'padre'); console.log('padre->', r.slice(0, 80));
+r = await dice('51900000002', 'acepto');
+r = await dice('51900000002', 'calendario'); assert.match(r, /inicio de clases/);
+r = await dice('51900000002', 'horarios'); assert.match(r, /7:45/);
+console.log('OK todas las pruebas de familia');

@@ -30,6 +30,8 @@ const MENU = [
   { ruta: 'pagos', texto: 'Pagos y recordatorios', icono: 'pagos', permiso: 'pagos.ver' },
   { ruta: 'utiles', texto: 'Listas de útiles', icono: 'utiles', permiso: 'utiles.ver' },
   { ruta: 'whatsapp', texto: 'WhatsApp', icono: 'whatsapp', permiso: 'whatsapp.ver' },
+  { ruta: 'admision', texto: 'Admisiones', icono: 'familia', permiso: 'admision.ver' },
+  { ruta: 'informes', texto: 'Información del colegio', icono: 'utiles', permiso: 'informes.editar' },
   { ruta: 'importar', texto: 'Importar Excel', icono: 'importar', ver: (s) => s.permisos.some((p) => p.startsWith('importar.alumnos') || p === 'importar.pagos' || p === 'usuarios.gestionar') },
   { ruta: 'datos', texto: 'Protección de datos', icono: 'escudo', ver: (s) => s.permisos.includes('consentimientos.ver') || s.permisos.includes('consentimientos.propios') },
   { ruta: 'auditoria', texto: 'Registro de accesos', icono: 'ojo', permiso: 'auditoria.ver' },
@@ -53,6 +55,8 @@ const VISTAS = {
   cuenta: () => import('./vistas/cuenta.js'),
   docente: () => import('./vistas/docente.js'),
   alertas: () => import('./vistas/alertas.js'),
+  admision: () => import('./vistas/admision.js'),
+  informes: () => import('./vistas/informes.js'),
 };
 
 export const sesion = { usuario: null, permisos: [], colegio: null, finalidades: {} };
