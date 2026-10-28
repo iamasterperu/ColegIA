@@ -12,6 +12,10 @@ migrations_dir = "migrations"
 [ai]
 binding = "AI"
 
+# Variable que ya existía en el panel de Cloudflare; se declara aquí para que el despliegue no la borre
+[vars]
+URL_BASE = "https://colegia.iamasterperu.workers.dev"
+
 # Cada hora de 8 a. m. a 5 p. m. hora de Lima (13 a 22 UTC)
 [triggers]
 crons = ["0 13-22 * * *"]
