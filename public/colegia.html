@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ColegIA · El asistente de WhatsApp de tu colegio</title>
+<meta name="description" content="ColegIA atiende por WhatsApp a las familias, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin datos de alumnos. Precio fijo mensual por colegio.">
+<meta property="og:title" content="ColegIA · El asistente de WhatsApp de tu colegio">
+<meta property="og:description" content="Admisiones, informes, comunicados, cobranza amable y apoyo docente. Demo de 30 días sin datos de alumnos.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{--navy:#0B1F3A;--navy2:#132B4F;--vio:#6C3BFF;--mint:#16B894;--amb:#FFB020;--ink:#1B2333;--muted:#5E6778;--line:#E4E7EE;--bg:#F7F8FB;--w:#fff}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);background:var(--w)}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:max(18px,env(safe-area-inset-left))}
+.hero{background:var(--navy);color:#fff;padding-block:28px 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:var(--vio);opacity:.9}
+.hero .wrap{position:relative;z-index:1}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.top img{height:44px;width:auto;display:block}
+.top a.m{font-size:14px;opacity:.85;text-decoration:none}
+h1{font-size:clamp(30px,5.2vw,52px);line-height:1.08;margin:48px 0 14px;max-width:16em;letter-spacing:-.02em}
+.lead{font-size:clamp(17px,2.2vw,20px);max-width:36em;color:#D5DDEA;margin:0 0 26px}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:13px 22px;border-radius:10px;font-weight:700;text-decoration:none;border:2px solid transparent}
+.btn.p{background:var(--mint);color:#06281f}
+.btn.s{border-color:#5d7399;color:#fff}
+.note{font-size:13.5px;color:#9FB0CC;margin-top:14px;max-width:38em}
+section{padding-block:56px}
+section.alt{background:var(--bg)}
+h2{font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:0 0 10px;letter-spacing:-.01em;color:var(--navy)}
+.sub{color:var(--muted);max-width:40em;margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 6px;font-size:17px;color:var(--navy)}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.rol{background:var(--w);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:14px;padding:20px;margin-bottom:16px}
+.rol h3{margin:0 0 12px;font-size:20px;color:var(--navy)}
+.dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.dos>div{min-width:0}
+.rol h4{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.rol ul{margin:0;padding-left:18px;font-size:15px}
+.rol li{margin-bottom:5px}
+.etapas{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;counter-reset:e}
+.etapas li{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:18px;counter-increment:e}
+.etapas li::before{content:counter(e);display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--vio);color:#fff;font-weight:700;margin-bottom:10px}
+.etapas b{display:block;color:var(--navy)} .etapas span{display:block;font-size:13px;color:var(--vio);font-weight:700;margin-bottom:6px}
+.etapas p{margin:0;font-size:14.5px;color:var(--muted)}
+.seg{background:var(--navy);color:#fff}
+.seg h2{color:#fff} .seg .sub{color:#C7D0E0}
+.seg ul{margin:0;padding-left:20px;max-width:46em} .seg li{margin-bottom:8px}
+.cta{text-align:center}
+.cta .btns{justify-content:center}
+footer{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="top"><img src="data:image/png;base64,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" alt="ColegIA"><a class="m" href="#contacto">Contacto</a></div>
+    <h1>El asistente de WhatsApp de tu colegio</h1>
+    <p class="lead">Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
+    <div class="btns"><a class="btn p" href="/entrar">Entrar a la demo</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
+    <p class="note">En la pantalla de entrada toca <b>Dirección</b>. La demo usa colegios y datos ficticios.</p>
+  </div>
+</header>
+
+<section><div class="wrap">
+  <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>
+  <p class="sub">Todo funciona en el WhatsApp que las familias y el personal ya usan. No instalan nada.</p>
+  <div class="grid">
+    <div class="card"><h3>Admisiones</h3><p>Responde pensiones, horarios y requisitos con lo que el colegio aprobó, anota a la familia interesada y agenda su visita.</p></div>
+    <div class="card"><h3>Informes y comunicados</h3><p>Calendario, útiles y trámites al instante. La dirección redacta, elige a quién va, revisa y confirma.</p></div>
+    <div class="card"><h3>Cobranza amable</h3><p>Recordatorios antes y después del vencimiento, vouchers por foto y boletas o facturas con el proveedor del colegio.</p></div>
+    <div class="card"><h3>Apoyo docente</h3><p>Exámenes con versión A y B, sesiones de clase y material adaptado en minutos.</p></div>
+  </div>
+</div></section>
+
+<section class="alt" id="roles"><div class="wrap">
+  <h2>Qué hace cada persona del colegio</h2>
+  <p class="sub">Primero un piloto de 30 días con información pública del colegio. Si el colegio decide seguir, se activan las demás funciones.</p>
+  
+  <article class="rol" style="--c:#6C3BFF">
+    <h3>Dirección</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Ajusta la información que responde el asistente: pensiones, horarios, calendario, requisitos y preguntas frecuentes.</li><li>Ve en el panel a las familias interesadas y las visitas que se agendaron por WhatsApp.</li><li>Pide por WhatsApp un comunicado ya redactado o traducido, para copiarlo y enviarlo como siempre.</li><li>Crea exámenes con versión A y B, y planifica sesiones, igual que un docente.</li><li>Prueba con datos ficticios cómo se vería el resumen de morosidad, los alumnos en riesgo y los comunicados.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Resumen del colegio, deuda por grado y por aula, y alumnos en riesgo (alerta temprana).</li><li>Comunicados a todos los padres, con vista previa, confirmación y registro de quién los leyó.</li><li>Resumen diario por WhatsApp a las 8 a. m. de lunes a viernes.</li><li>Registro de quién consultó datos de alumnos y atención de solicitudes ARCO (Ley 29733).</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#16B894">
+    <h3>Secretaría</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Atiende a las familias interesadas: ve quién escribió y a quién debe llamar.</li><li>Gestiona las visitas agendadas y marca cuáles se realizaron.</li><li>Sube la lista de útiles por grado, en foto o Excel, para que el asistente la informe.</li><li>Mantiene las preguntas frecuentes y el calendario del año.</li><li>Traduce comunicados.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Busca a cualquier alumno y sus contactos con solo escribir su nombre.</li><li>Carga fichas de matrícula y listas desde una foto o un Excel.</li><li>Avisa a un grado completo y a cada padre los útiles que le faltan.</li><li>Bandeja de mensajes de padres por atender y autorizaciones de WhatsApp pendientes.</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#E59A00">
+    <h3>Contabilidad</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Ve la demostración con datos ficticios: morosos, registro de pagos, recordatorios y vouchers.</li><li>Acuerda qué proveedor de boletas y facturas usará el colegio. En el piloto no se carga cobranza real.</li><li>Nunca se pide la clave SOL.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Resumen de cobranza, lista de morosos y deuda de cada alumno.</li><li>Registra pagos por Yape, Plin, transferencia, efectivo o tarjeta.</li><li>Recordatorios amables antes y después del vencimiento, también automáticos.</li><li>Los padres mandan la foto del voucher y contabilidad lo confirma o rechaza.</li><li>Boletas y facturas electrónicas con el proveedor del colegio (por desarrollar).</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#E5484D">
+    <h3>Docentes</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Exámenes con versión A y B y solucionario, a partir de un tema, el sílabo o la foto de una página.</li><li>Sesiones de clase planificadas en minutos.</li><li>Material adaptado para alumnos con TDAH, dislexia u otras necesidades, sin usar nombres.</li><li>Traducción de textos y comunicados.</li><li>Solo hace falta registrar su nombre y celular.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Asistencia, faltas y tardanzas por WhatsApp.</li><li>Notas por texto o por la foto del registro.</li><li>Resultados del examen por pregunta y radar de temas débiles del aula.</li><li>Alumnos en riesgo, alertas de salud y justificaciones de sus padres.</li><li>Aviso a los padres de su aula y registro de útiles entregados.</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#6C3BFF">
+    <h3>Auxiliares</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Sin uso en el piloto: sus tareas dependen de la lista de alumnos.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Rol propio con permisos acotados: asistencia, tardanzas, justificaciones y alertas de salud de su aula (por desarrollar).</li><li>Mientras tanto pueden usar el acceso de docente si el colegio se lo da.</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#16B894">
+    <h3>Padres y familias</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Las familias nuevas preguntan por pensiones, horarios y requisitos, y agendan su visita por WhatsApp.</li><li>Cualquier familia consulta calendario, horarios, trámites y preguntas frecuentes, a cualquier hora.</li><li>El asistente solo responde lo que el colegio aprobó. Si no lo sabe, deriva a secretaría.</li><li>Guarda nombre y celular solo si la familia los da, con aviso de privacidad.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Deuda y cómo pagar, con envío de la foto del voucher.</li><li>Lista de útiles de su hijo y lo que falta.</li><li>Notas, asistencia y justificación de faltas.</li><li>Comunicados con confirmación de lectura y recordatorios de pago.</li><li>Hablar con secretaría, y ver o retirar sus autorizaciones.</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#E59A00">
+    <h3>Alumnos</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>No participan. Opcional: el test vocacional Rumbo para 4.° y 5.° de secundaria, con resultados que se quedan en su dispositivo.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Tutor de IA que guía con preguntas y no da la respuesta, solo con autorización del apoderado.</li><li>El docente ve en qué temas se trabó cada alumno.</li></ul></div>
+    </div>
+  </article>
+  <article class="rol" style="--c:#E5484D">
+    <h3>Tutoría, psicología y otros</h3>
+    <div class="dos">
+      <div><h4>En el piloto de 30 días</h4><ul><li>Sin uso en el piloto.</li></ul></div>
+      <div><h4>Después del contrato</h4><ul><li>Los tutores reciben cada lunes la alerta temprana de su aula por WhatsApp.</li><li>Dirección comparte con psicología los alumnos en riesgo.</li><li>Portería y administración no necesitan usar la app.</li></ul></div>
+    </div>
+  </article>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Cómo empezamos</h2>
+  <p class="sub">Cada etapa pide solo lo necesario. El colegio decide cuándo pasar a la siguiente.</p>
+  <ol class="etapas"><li><b>Piloto de 30 días</b><span>Sin datos de alumnos ni de padres</span><p>Solo información pública del colegio. El colegio envía lo que ya entrega a las familias y el asistente responde con eso.</p></li><li><b>Contrato</b><span>Se activa el WhatsApp del colegio</span><p>Número de WhatsApp Business del colegio, lista de apoderados con su autorización, comunicados a todas las familias y avisos de pago.</p></li><li><b>Cobranza y comprobantes</b><span>Con el proveedor que el colegio ya use</span><p>Cobranza amable y boletas o facturas electrónicas. Nunca se pide la clave SOL.</p></li><li><b>Notas y refuerzo</b><span>Con autorización de las familias</span><p>Notas por alumno desde la foto del registro y refuerzo por grupo.</p></li></ol>
+</div></section>
+
+<section class="seg"><div class="wrap">
+  <h2>Datos protegidos desde el primer día</h2>
+  <p class="sub">Pensado para la Ley 29733 de Protección de Datos Personales.</p>
+  <ul>
+    <li>El piloto no usa listas de alumnos, datos de padres, notas, DNI ni claves.</li>
+    <li>El WhatsApp es del colegio, con su RUC. El colegio lo controla siempre.</li>
+    <li>Las familias autorizan el uso de WhatsApp y pueden retirarlo cuando quieran.</li>
+    <li>Cada consulta de datos personales queda registrada, y cada rol ve solo lo que necesita.</li>
+    <li>Nunca se pide la clave SOL.</li>
+  </ul>
+</div></section>
+
+<section class="cta" id="contacto"><div class="wrap">
+  <h2>Pruébalo con tu colegio</h2>
+  <p class="sub" style="margin-inline:auto">Precio fijo mensual por colegio, según su tamaño. No se cobra por alumno.</p>
+  <div class="btns"><a class="btn p" href="/entrar" style="background:var(--navy);color:#fff">Entrar a la demo</a><a class="btn s" href="mailto:iamasterperu@gmail.com" style="border-color:var(--navy);color:var(--navy)">iamasterperu@gmail.com</a></div>
+  <p class="note" style="color:var(--muted);margin-inline:auto">Bruce Jonathan Ruiz Avendaño · IAMASTER · Chorrillos, Lima</p>
+</div></section>
+<footer>ColegIA es una creación de <a href="https://iamaster.iamasterperu.workers.dev/">IAMASTER</a>.</footer>
+</body>
+</html>
