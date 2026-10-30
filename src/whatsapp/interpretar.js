@@ -18,6 +18,7 @@ export const INTENCIONES = {
     ['humano', /\b(secretaria|persona|humano|asesor|hablar|reclamo|queja|cita)\b/, 'quiere hablar con una persona'],
   ],
   profesor: [
+    ['lista', /^(pasar lista|tomar lista|tomar asistencia|iniciar lista)\b|^lista( \d.*)?$/, 'tomar la lista de asistencia de una sección'],
     ['notas_registrar', /^(registrar |subir |cargar |poner )?notas? .* (ad|a|b|c|\d{1,2})$/, 'registrar notas de varios alumnos'],
     ['asistencia_aula', /^(asistencia|pase de lista|lista de hoy|faltaron|ausentes)\b/, 'registrar la asistencia de hoy de varios alumnos'],
     ['examen', /\b(examen|examenes|evaluacion|prueba|practica calificada|preguntas de)\b/, 'crear un examen con preguntas, versiones A/B y solucionario'],
@@ -38,6 +39,7 @@ export const INTENCIONES = {
     ['alumno', /^(alumno|alumna|ficha|ver|buscar|notas de|como va)\b|\bcomo (le )?va\b/, 'ver el resumen de un alumno por su nombre'],
   ],
   contabilidad: [
+    ['comprobante', /^(boleta|factura)\b/, 'emitir una boleta o factura electrónica de un pago'],
     ['voucher_accion', /^(confirmar|rechazar) (voucher )?\d+/, 'confirmar o rechazar un voucher'],
     ['vouchers', /\b(voucher|vouchers|comprobantes|reportados|yapeos)\b/, 'ver vouchers enviados por los padres'],
     ['pagar', /^(pago|pagar|pago de|registrar pago|registra pago|cobre|cobrado|pago recibido)\b/, 'registrar el pago de un alumno'],
@@ -47,6 +49,17 @@ export const INTENCIONES = {
     ['deuda_alumno', /^(deuda|debe|cuanto debe|estado de cuenta|saldo)\b/, 'ver la deuda de un alumno por su nombre'],
   ],
   secretaria: [
+    ['aprobar', /^(aprobar|aprueba|aprobado)\s+\d+/, 'aprobar un comunicado automático pendiente'],
+    ['rechazar', /^(rechazar|rechaza|descartar)\s+\d+/, 'rechazar un comunicado automático pendiente'],
+    ['editar_borrador', /^editar\s+\d+/, 'editar el texto de un comunicado pendiente'],
+    ['borradores', /\b(borradores|por aprobar|pendientes de aprobar|comunicados pendientes)\b/, 'ver comunicados por aprobar'],
+    ['lista', /^(pasar lista|tomar lista|tomar asistencia)\b|^lista( \d.*)?$/, 'tomar la lista de asistencia de una sección'],
+    ['cumples', /\b(cumpleanos|cumplen|cumple hoy)\b/, 'ver quién cumple años hoy'],
+    ['reporte', /^(reporte|informe del mes|reporte mensual)\b/, 'ver el reporte del mes'],
+    ['invitar', /^(invitar|invitacion)\b/, 'invitar a las familias interesadas con la carta de presentación'],
+    ['reinscripcion', /\b(reinscripcion|reinscripciones|reinscribir)\b/, 'ver o iniciar la campaña de reinscripción'],
+    ['constancia', /^(constancia|constancias)\b/, 'preparar un borrador de constancia de matrícula'],
+    ['diploma', /^(diploma|reconocimiento)\b/, 'preparar un diploma para un alumno'],
     ['traducir', /^(traduc\w*)\b/, 'traducir un comunicado'],
     ['faltantes', /\b(faltantes|utiles que faltan|lo que falta)\b/, 'avisar a cada padre los útiles que le faltan'],
     ['avisar', /^(avisar|aviso|avisa|comunicar|comunicado)\b/, 'enviar un aviso a los padres de un grado'],
@@ -56,6 +69,18 @@ export const INTENCIONES = {
     ['alumno', /^(alumno|alumna|ficha|buscar|contacto|telefono de|apoderado de)\b/, 'buscar un alumno y sus contactos'],
   ],
   direccion: [
+    ['aprobar', /^(aprobar|aprueba|aprobado)\s+\d+/, 'aprobar un comunicado automático pendiente'],
+    ['rechazar', /^(rechazar|rechaza|descartar)\s+\d+/, 'rechazar un comunicado automático pendiente'],
+    ['editar_borrador', /^editar\s+\d+/, 'editar el texto de un comunicado pendiente'],
+    ['borradores', /\b(borradores|por aprobar|pendientes de aprobar|comunicados pendientes)\b/, 'ver comunicados por aprobar'],
+    ['lista', /^(pasar lista|tomar lista|tomar asistencia)\b|^lista( \d.*)?$/, 'tomar la lista de asistencia de una sección'],
+    ['cumples', /\b(cumpleanos|cumplen|cumple hoy)\b/, 'ver quién cumple años hoy'],
+    ['reporte', /^(reporte|informe del mes|reporte mensual)\b/, 'ver el reporte del mes'],
+    ['invitar', /^(invitar|invitacion)\b/, 'invitar a las familias interesadas con la carta de presentación'],
+    ['reinscripcion', /\b(reinscripcion|reinscripciones|reinscribir)\b/, 'ver o iniciar la campaña de reinscripción'],
+    ['constancia', /^(constancia|constancias)\b/, 'preparar un borrador de constancia de matrícula'],
+    ['diploma', /^(diploma|reconocimiento)\b/, 'preparar un diploma para un alumno'],
+    ['comprobante', /^(boleta|factura)\b/, 'emitir una boleta o factura electrónica de un pago'],
     ['deuda_aula', /\b(cuanto deben|deben en|deuda de|deuda del|deuda en)\b.*\d/, 'ver la deuda de un aula (por ejemplo 3ro B)'],
     ['lectura', /\b(leyeron|leido|lectura|confirmaron|quien leyo)\b/, 'ver quién leyó el último comunicado'],
     ['riesgo', /\b(riesgo|en riesgo|alerta temprana|desaprob\w*)\b/, 'ver alumnos y aulas en riesgo'],
@@ -105,8 +130,8 @@ export function resto(texto) {
 }
 
 // Para avisos y justificaciones el mensaje se conserva entero: solo se quita la palabra clave
-const MENSAJE_LIBRE = /^\s*(?:avisar|aviso|avisa|comunicar|comunicado|enviar a todos|traduc\w*|resultados?)\b[\s:,.-]*/i;
-const CON_MENSAJE = new Set(['avisar', 'comunicado', 'justificar', 'examen', 'sesion', 'adaptar', 'traducir', 'resultados']);
+const MENSAJE_LIBRE = /^\s*(?:constancia(?: de matr[ií]cula)?|diploma|boleta|factura|(?:pasar|tomar) lista|avisar|aviso|avisa|comunicar|comunicado|enviar a todos|traduc\w*|resultados?)\b[\s:,.-]*/i;
+const CON_MENSAJE = new Set(['constancia', 'diploma', 'comprobante', 'lista', 'avisar', 'comunicado', 'justificar', 'examen', 'sesion', 'adaptar', 'traducir', 'resultados']);
 
 export function porReglas(rol, texto) {
   const t = normalizar(texto);

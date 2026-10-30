@@ -26,6 +26,8 @@ const MENU = [
   { ruta: 'inicio', texto: 'Mis hijos', icono: 'familia', ver: (s) => s.usuario.rol === 'padre' },
   { ruta: 'panel', texto: 'Panel de dirección', icono: 'panel', permiso: 'panel.ver' },
   { ruta: 'docente', texto: 'Asistente docente', icono: 'docente', ver: (s) => ['direccion', 'profesor', 'secretaria'].includes(s.usuario.rol) },
+  { ruta: 'asistencia', texto: 'Asistencia (tomar lista)', icono: 'docente', permiso: 'asistencia.tomar' },
+  { ruta: 'automatizacion', texto: 'Automatización y reportes', icono: 'panel', permiso: 'comunicados.aprobar' },
   { ruta: 'alertas', texto: 'Alertas tempranas', icono: 'alerta', ver: (s) => ['direccion', 'profesor', 'secretaria'].includes(s.usuario.rol) },
   { ruta: 'pagos', texto: 'Pagos y recordatorios', icono: 'pagos', permiso: 'pagos.ver' },
   { ruta: 'utiles', texto: 'Listas de útiles', icono: 'utiles', permiso: 'utiles.ver' },
@@ -57,6 +59,8 @@ const VISTAS = {
   alertas: () => import('./vistas/alertas.js'),
   admision: () => import('./vistas/admision.js'),
   informes: () => import('./vistas/informes.js'),
+  asistencia: () => import('./vistas/asistencia.js'),
+  automatizacion: () => import('./vistas/automatizacion.js'),
 };
 
 export const sesion = { usuario: null, permisos: [], colegio: null, finalidades: {} };

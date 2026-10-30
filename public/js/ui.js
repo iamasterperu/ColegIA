@@ -100,5 +100,8 @@ export const ACCIONES = {
   descargar_mis_datos: 'Descargó sus datos', crear_usuario: 'Creó usuario', editar_usuario: 'Editó usuario', editar_ajustes: 'Editó ajustes',
   cambiar_clave: 'Cambió su contraseña', guardar_lista_utiles: 'Guardó lista de útiles', borrar_lista_utiles: 'Borró lista de útiles',
   editar_informes: 'Editó la información del colegio', editar_demo: 'Editó la demo',
+  tomar_lista: 'Tomó lista de asistencia', editar_automatizacion: 'Cambió los avisos automáticos', aprobar_borrador: 'Aprobó un comunicado', rechazar_borrador: 'Descartó un comunicado', editar_borrador: 'Editó un comunicado',
+  iniciar_reinscripcion: 'Inició la reinscripción', confirmar_reinscripcion: 'Confirmó reinscripción', no_continua_reinscripcion: 'Avisó que no continúa', invitar_familias: 'Invitó a familias interesadas',
+  crear_constancia: 'Preparó una constancia', crear_diploma: 'Preparó un diploma', emitir_comprobante: 'Emitió un comprobante', editar_nubefact: 'Editó la facturación electrónica',
   avisar_lista_utiles: 'Avisó lista de útiles', importar_alumnos: 'Importó alumnos', importar_pagos: 'Importó pagos',
 };

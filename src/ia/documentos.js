@@ -6,10 +6,10 @@ import { pdfExamen, pdfSesion, pdfTexto } from './docente.js';
 export async function guardarDocumento(env, colegioId, usuarioId, d) {
   const token = tokenAleatorio(16);
   const fila = await env.DB.prepare(
-    `INSERT INTO documentos (colegio_id, usuario_id, tipo, titulo, grado, curso, pedido, contenido, token)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+    `INSERT INTO documentos (colegio_id, usuario_id, tipo, titulo, grado, curso, pedido, contenido, token, fuente)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
   ).bind(colegioId, usuarioId, d.tipo, String(d.titulo).slice(0, 150), d.grado || null, d.curso || null,
-    String(d.pedido || '').slice(0, 500), JSON.stringify(d.contenido), token).first();
+    String(d.pedido || '').slice(0, 500), JSON.stringify(d.contenido), token, d.fuente || 'tema').first();
   return { id: fila.id, token };
 }
 

@@ -20,11 +20,12 @@ export const PERMISOS = {
     'ajustes.editar', 'whatsapp.ver', 'whatsapp.responder', 'consentimientos.ver',
     'consentimientos.registrar', 'arco.gestionar',
     'importar.alumnos', 'importar.pagos', 'importar.utiles', 'admision.ver', 'admision.editar', 'informes.editar',
+    'comunicados.aprobar', 'reportes.ver', 'asistencia.tomar', 'asistencia.ver', 'comprobantes.emitir', 'reinscripcion.gestionar', 'automatizacion.editar',
   ],
   contabilidad: [
     'alumnos.buscar', 'ficha.personal', 'ficha.apoderados', 'ficha.pagos', 'ficha.consentimientos',
     'pagos.ver', 'pagos.editar', 'recordatorios.enviar', 'whatsapp.ver', 'whatsapp.responder',
-    'consentimientos.ver', 'importar.pagos',
+    'consentimientos.ver', 'importar.pagos', 'comprobantes.emitir',
   ],
   secretaria: [
     'alumnos.buscar', 'alumnos.editar', 'ficha.personal', 'ficha.apoderados', 'ficha.academico',
@@ -32,9 +33,10 @@ export const PERMISOS = {
     'utiles.ver', 'utiles.editar', 'whatsapp.ver', 'whatsapp.responder',
     'consentimientos.ver', 'consentimientos.registrar', 'arco.gestionar',
     'importar.alumnos', 'importar.utiles', 'admision.ver', 'admision.editar', 'informes.editar',
+    'comunicados.aprobar', 'reportes.ver', 'asistencia.tomar', 'asistencia.ver', 'reinscripcion.gestionar',
   ],
   // Profesor: solo los alumnos de sus secciones, sin pagos ni datos de contacto completos.
-  profesor: ['alumnos.buscar', 'ficha.personal', 'ficha.academico', 'ficha.salud_alertas', 'utiles.ver'],
+  profesor: ['alumnos.buscar', 'ficha.personal', 'ficha.academico', 'ficha.salud_alertas', 'utiles.ver', 'asistencia.tomar'],
   // Padre: solo sus hijos (el alcance se aplica en alcanceAlumnos).
   padre: [
     'alumnos.buscar', 'ficha.personal', 'ficha.apoderados', 'ficha.academico', 'ficha.pagos',

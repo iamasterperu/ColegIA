@@ -1,5 +1,6 @@
 // Notas y asistencia por WhatsApp. El profesor escribe (o manda la foto del registro) y
 // ColegIA arma la lista, la muestra y solo guarda cuando responde "SI".
+import { sentenciasAsistencia } from '../../lib/asistencia.js';
 import { alcanceAlumnos, tiene } from '../../lib/permisos.js';
 import { normalizar } from '../../lib/texto.js';
 import { hoyLima } from '../../lib/http.js';
@@ -131,16 +132,11 @@ export async function ejecutarRegistro(env, colegio, persona, datos, notificar) 
     ]);
     return `✅ Guardé ${notas.length} notas de ${datos.curso} (${datos.bimestre}° bimestre). Los padres las ven al escribir "notas".`;
   }
-  const mes = hoyLima().slice(0, 7);
-  const lotes = [];
-  for (const [lista, col] of [[datos.faltas, 'faltas'], [datos.tardanzas, 'tardanzas']]) {
-    for (const id of lista.filter((x) => permitidos.has(x))) {
-      lotes.push(env.DB.prepare(
-        `INSERT INTO asistencia (colegio_id, alumno_id, mes, dias_habiles, faltas, tardanzas) VALUES (?, ?, ?, 21, ?, ?)
-         ON CONFLICT(alumno_id, mes) DO UPDATE SET ${col} = ${col} + 1`,
-      ).bind(colegio.id, id, mes, col === 'faltas' ? 1 : 0, col === 'tardanzas' ? 1 : 0));
-    }
-  }
+  const registros = [
+    ...datos.faltas.filter((x) => permitidos.has(x)).map((alumnoId) => ({ alumnoId, estado: 'falta' })),
+    ...datos.tardanzas.filter((x) => permitidos.has(x)).map((alumnoId) => ({ alumnoId, estado: 'tardanza' })),
+  ];
+  const lotes = await sentenciasAsistencia(env, colegio.id, hoyLima(), registros, u.id);
   lotes.push(auditoria(env, colegio, persona, 'registrar_asistencia', null, null, { faltas: datos.faltas.length, tardanzas: datos.tardanzas.length }));
   await env.DB.batch(lotes);
   let avisados = 0;

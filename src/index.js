@@ -13,6 +13,10 @@ import { rutasAdmin } from './rutas/admin.js';
 import { rutasImportar } from './rutas/importar.js';
 import { rutasAdmision } from './rutas/admision.js';
 import { limpiar } from './lib/limpieza.js';
+import { rutasPublicas } from './rutas/publico.js';
+import { rutasAutomatizacion } from './rutas/automatizacion.js';
+import { cumpleanios, borradoresFiestas, reporteDiario, reporteMensual } from './whatsapp/automatizacion.js';
+import { seguimientoReinscripcion } from './whatsapp/reinscripcion.js';
 import { rutasDocente } from './rutas/docente.js';
 import { rutasDocumentosPublicos } from './ia/documentos.js';
 import { alertasSemanales, resumenDiario } from './whatsapp/alertas.js';
@@ -21,7 +25,7 @@ import { cargarConexion } from './whatsapp/envio.js';
 
 const router = new Router();
 [rutasAuth, rutasAlumnos, rutasPagos, rutasUtiles, rutasPanel, rutasWhatsapp, rutasWebhook,
-  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos].forEach((registrar) => registrar(router));
+  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos, rutasPublicas, rutasAutomatizacion].forEach((registrar) => registrar(router));
 
 const PUBLICAS = ['/api/login', '/api/logout'];
 
@@ -30,7 +34,7 @@ export default {
     const url = new URL(request.url);
     const encontrada = router.buscar(request.method, url.pathname);
     if (!encontrada) {
-      if (/^\/(api|webhook|d)\//.test(url.pathname)) return json({ error: 'Ruta no encontrada' }, 404);
+      if (/^\/(api|webhook|d|c|carta)\//.test(url.pathname)) return json({ error: 'Ruta no encontrada' }, 404);
       return env.ASSETS.fetch(request);
     }
     const esApi = url.pathname.startsWith('/api/');
@@ -66,8 +70,13 @@ export default {
     // Primero la cola de avisos y comunicados; con lo que sobre, los recordatorios
     const tarea = async () => {
       const dia = new Date(evento.scheduledTime).getUTCDay();
+      const horaLima = new Date(evento.scheduledTime).getUTCHours() - 5;
       // Lunes a viernes: resumen del día a dirección (se encola antes para que salga a las 8)
       if (primera && dia >= 1 && dia <= 5) await resumenDiario(env);
+      // Cumpleaños, comunicados por fiestas (para aprobar) y seguimiento de reinscripción: una vez al día
+      if (primera) { await cumpleanios(env); await borradoresFiestas(env); await seguimientoReinscripcion(env); }
+      if (horaLima === 10) await reporteDiario(env); // asistencia y exámenes del día, a dirección
+      if (horaLima === 17) await reporteMensual(env); // último día del mes: reporte a dirección y secretaría
       const enviados = await procesarCola(env, ENVIOS_POR_CORRIDA, cargarConexion);
       await cronRecordatorios(env, ENVIOS_POR_CORRIDA - enviados);
       if (primera) await limpiar(env);

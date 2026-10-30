@@ -11,12 +11,14 @@ import { responderDocente, utilesAlumno } from './docente.js';
 import { ejecutarCarga } from './carga.js';
 import { ejecutarRegistro } from './registro.js';
 import { alumnosEnRiesgo } from '../../lib/riesgo.js';
+import { sentenciasAsistencia } from '../../lib/asistencia.js';
+import { responderAutomatizacion, ejecutarAutomatizada } from './automatizacion.js';
 
 const MENUS = {
-  profesor: '1️⃣ Crear un examen ("examen de 20 preguntas de fracciones para 2°")\n2️⃣ Planificar una sesión ("sesión sobre el ciclo del agua para 4°")\n3️⃣ Ver un alumno ("alumno Mateo Quispe")\n4️⃣ Asistencia de hoy ("asistencia: faltaron Mateo Quispe, Ana Paz; tarde Luis Ríos")\n5️⃣ Resultados de un examen ("resultados 12: Mateo Quispe 2 5 9")\n6️⃣ Radar de temas débiles\n7️⃣ Alumnos en riesgo\n8️⃣ Útiles de un alumno ("útiles Mateo Quispe")\n9️⃣ Avisar a los padres de mi aula ("avisar: mañana traer cartulina")\nNotas: "notas Matemática bimestre 4: Mateo Quispe 15; Ana Paz 18" o la FOTO del registro con la palabra "notas".\nTambién: "falta Mateo Quispe", "alergias", "tutor" (dudas de tus alumnos), "adaptar para TDAH: …", "traducir al inglés: …", "útiles faltantes" o mándame una foto del libro.',
-  contabilidad: '1️⃣ Resumen de cobranza\n2️⃣ Morosos\n3️⃣ Deuda de un alumno ("deuda Mateo Quispe")\n4️⃣ Registrar un pago ("pago Mateo Quispe octubre yape")\n5️⃣ Enviar recordatorios a los morosos\n6️⃣ Vouchers enviados por los padres',
-  secretaria: '1️⃣ Buscar alumno y contactos ("alumno Mateo Quispe")\n2️⃣ Mensajes de padres por atender\n3️⃣ Útiles ("útiles 3° Primaria" o "útiles Mateo Quispe")\n4️⃣ Autorizaciones pendientes\n5️⃣ Avisar a un grado ("avisar 3° Primaria: reunión el viernes 6 p. m.")\n6️⃣ Avisar útiles faltantes ("faltantes 3° Primaria")\n📸 Mándame la FOTO de una lista de útiles o de una ficha de matrícula, o el Excel, y lo cargo yo.',
-  direccion: '1️⃣ Resumen del colegio\n2️⃣ Deuda por grado\n3️⃣ Deuda de un aula ("¿cuánto deben en 3° Primaria B?")\n4️⃣ Alumnos en riesgo (alerta temprana)\n5️⃣ Comunicado a todos los padres ("comunicado: el lunes no hay clases")\n6️⃣ ¿Quién leyó el último comunicado?\n7️⃣ Quién consultó datos hoy\n8️⃣ Solicitudes ARCO pendientes\nTambién: "alumno Mateo Quispe", "examen de …", "traducir al inglés: …"',
+  profesor: '1️⃣ Crear un examen ("examen de 20 preguntas de fracciones para 2°")\n2️⃣ Planificar una sesión ("sesión sobre el ciclo del agua para 4°")\n3️⃣ Ver un alumno ("alumno Mateo Quispe")\n4️⃣ Asistencia de hoy ("asistencia: faltaron Mateo Quispe, Ana Paz; tarde Luis Ríos")\n5️⃣ Resultados de un examen ("resultados 12: Mateo Quispe 2 5 9")\n6️⃣ Radar de temas débiles\n7️⃣ Alumnos en riesgo\n8️⃣ Útiles de un alumno ("útiles Mateo Quispe")\n9️⃣ Avisar a los padres de mi aula ("avisar: mañana traer cartulina")\nNotas: "notas Matemática bimestre 4: Mateo Quispe 15; Ana Paz 18" o la FOTO del registro con la palabra "notas".\nTambién: "falta Mateo Quispe", "alergias", "tutor" (dudas de tus alumnos), "adaptar para TDAH: …", "traducir al inglés: …", "útiles faltantes" o mándame una foto del libro.\nTambién: *lista* para pasar lista (te muestro los alumnos y me dices quién faltó), un PDF o una página web para crear el examen, y *mi cumpleaños 12 de mayo* para que te saludemos.',
+  contabilidad: '1️⃣ Resumen de cobranza\n2️⃣ Morosos\n3️⃣ Deuda de un alumno ("deuda Mateo Quispe")\n4️⃣ Registrar un pago ("pago Mateo Quispe octubre yape")\n5️⃣ Enviar recordatorios a los morosos\n6️⃣ Vouchers enviados por los padres\nTambién: *boleta Nombre del alumno* o *factura Nombre 20123456789 Razón Social* (después de registrar el pago).',
+  secretaria: '1️⃣ Buscar alumno y contactos ("alumno Mateo Quispe")\n2️⃣ Mensajes de padres por atender\n3️⃣ Útiles ("útiles 3° Primaria" o "útiles Mateo Quispe")\n4️⃣ Autorizaciones pendientes\n5️⃣ Avisar a un grado ("avisar 3° Primaria: reunión el viernes 6 p. m.")\n6️⃣ Avisar útiles faltantes ("faltantes 3° Primaria")\n📸 Mándame la FOTO de una lista de útiles o de una ficha de matrícula, o el Excel, y lo cargo yo.\nTambién: *aprobar 12* / *rechazar 12* (comunicados automáticos), *reporte*, *cumpleaños*, *reinscripción*, *invitar* (a familias interesadas), *constancia Mateo Quispe*, *diploma Ana Paz: motivo*, *lista* y *mi cumpleaños 12 de mayo*.',
+  direccion: '1️⃣ Resumen del colegio\n2️⃣ Deuda por grado\n3️⃣ Deuda de un aula ("¿cuánto deben en 3° Primaria B?")\n4️⃣ Alumnos en riesgo (alerta temprana)\n5️⃣ Comunicado a todos los padres ("comunicado: el lunes no hay clases")\n6️⃣ ¿Quién leyó el último comunicado?\n7️⃣ Quién consultó datos hoy\n8️⃣ Solicitudes ARCO pendientes\nTambién: "alumno Mateo Quispe", "examen de …", "traducir al inglés: …"\nTambién: *aprobar 12* / *rechazar 12* (comunicados automáticos), *reporte*, *cumpleaños*, *reinscripción*, *invitar* (a familias interesadas), *constancia Mateo Quispe*, *diploma Ana Paz: motivo*, *lista* y *mi cumpleaños 12 de mayo*.',
 };
 const TITULO = { profesor: 'Profesor', contabilidad: 'Contabilidad', secretaria: 'Secretaría', direccion: 'Dirección' };
 
@@ -373,13 +375,15 @@ export async function responderPersonal(env, colegio, persona, entrada) {
   const manejadores = { profesor, contabilidad, secretaria, direccion };
   if (entrada.intencion === 'menu') return { texto: menuPersonal(persona, colegio) };
   if (entrada.intencion === 'gracias') return { texto: '¡De nada! Escribe *MENÚ* cuando me necesites.' };
-  const r = (await responderDocente(env, colegio, persona, entrada)) || (await manejadores[persona.rol](env, colegio, persona, entrada));
+  const r = (await responderAutomatizacion(env, colegio, persona, entrada)) || (await responderDocente(env, colegio, persona, entrada)) || (await manejadores[persona.rol](env, colegio, persona, entrada));
   return r || { texto: `No entendí 🤔. Esto es lo que puedo hacer:\n${MENUS[persona.rol]}` };
 }
 
 // Ejecuta una acción confirmada con "SI"
 export async function ejecutarConfirmada(env, colegio, persona, datos, { notificar, enviarCola }) {
   const u = persona.usuario;
+  const extra = await ejecutarAutomatizada(env, colegio, persona, datos, { notificar, enviarCola });
+  if (extra !== null) return extra;
   if (datos.tipo === 'notas' || datos.tipo === 'asistencia_aula') return ejecutarRegistro(env, colegio, persona, datos, notificar);
   if (['guardar_utiles', 'matricula', 'excel_alumnos'].includes(datos.tipo)) {
     if (!tiene(u, 'alumnos.editar') && !tiene(u, 'utiles.editar')) return 'Tu rol no puede cargar datos.';
@@ -416,10 +420,7 @@ export async function ejecutarConfirmada(env, colegio, persona, datos, { notific
     if (!a) return 'No encontré al alumno en tus secciones.';
     const columna = datos.registro === 'tardanza' ? 'tardanzas' : 'faltas';
     await env.DB.batch([
-      env.DB.prepare(
-        `INSERT INTO asistencia (colegio_id, alumno_id, mes, dias_habiles, faltas, tardanzas) VALUES (?, ?, ?, 21, ?, ?)
-         ON CONFLICT(alumno_id, mes) DO UPDATE SET ${columna} = ${columna} + 1`,
-      ).bind(colegio.id, a.id, hoyLima().slice(0, 7), columna === 'faltas' ? 1 : 0, columna === 'tardanzas' ? 1 : 0),
+      ...(await sentenciasAsistencia(env, colegio.id, hoyLima(), [{ alumnoId: a.id, estado: columna === 'faltas' ? 'falta' : 'tardanza' }], u.id)),
       auditoria(env, colegio, persona, 'registrar_asistencia', 'alumno', a.id, { tipo: columna }),
     ]);
     const ap = await env.DB.prepare(

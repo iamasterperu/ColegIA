@@ -1,7 +1,7 @@
 // Generador de PDF mínimo (A4, Helvetica, acentos en WinAnsi). Sin librerías: los
 // exámenes y sesiones se arman en milisegundos dentro del límite del plan gratis.
-const ANCHO = 595;
-const ALTO = 842;
+export const ANCHO = 595;
+export const ALTO = 842;
 const MARGEN = 50;
 
 const ESPECIALES = { '–': 0x96, '—': 0x97, '“': 0x93, '”': 0x94, '‘': 0x91, '’': 0x92, '•': 0x95, '…': 0x85, '€': 0x80 };
@@ -44,6 +44,7 @@ export class DocumentoPdf {
     this.titulo = titulo;
     this.pie = pie;
     this.color = hexARgb(color);
+    this.colorHex = color;
     this.nuevaPagina();
   }
 
@@ -58,6 +59,26 @@ export class DocumentoPdf {
 
   escribir(x, y, texto, tam, negrita, color = '0 g') {
     this.ops.push(`BT ${color} /${negrita ? 'F2' : 'F1'} ${tam} Tf ${x.toFixed(1)} ${y.toFixed(1)} Td (${escapar(winAnsi(texto))}) Tj ET`);
+  }
+
+  // Rectángulo de color (hex) en coordenadas de página
+  rect(x, y, w, h, color) {
+    this.ops.push(`${hexARgb(color)} rg ${x.toFixed(1)} ${y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)} re f 0 g`);
+  }
+
+  // Texto en cualquier lugar de la página (color hex o blanco)
+  texto(x, y, texto, tam = 11, negrita = false, color = '#000000', centrado = false) {
+    const w = centrado ? anchoTexto(winAnsi(texto), tam, negrita) : 0;
+    this.escribir(x - w / 2, y, texto, tam, negrita, `${hexARgb(color)} rg`);
+  }
+
+  // Encabezado grande con los colores del colegio: banda principal y franja secundaria
+  banda(nombre, subtitulo, colorSecundario = '#f59e0b') {
+    this.rect(0, ALTO - 120, ANCHO, 120, this.colorHex);
+    this.rect(0, ALTO - 126, ANCHO, 6, colorSecundario);
+    this.texto(MARGEN, ALTO - 62, nombre, 22, true, '#ffffff');
+    if (subtitulo) this.texto(MARGEN, ALTO - 88, subtitulo, 12, false, '#ffffff');
+    this.y = ALTO - 126 - 28;
   }
 
   espacio(alto = 8) {

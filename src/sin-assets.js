@@ -12,7 +12,7 @@ const servir = (ruta) => {
 export default {
   fetch(request, env, ctx) {
     const { pathname } = new URL(request.url);
-    if (/^\/(api|webhook|d)\//.test(pathname)) return app.fetch(request, env, ctx);
+    if (/^\/(api|webhook|d|c|carta)\//.test(pathname)) return app.fetch(request, env, ctx);
     // La portada es la página pública de ColegIA; la app (inicio de sesión) vive en /entrar
     return servir(pathname === '/' ? '/colegia.html' : pathname === '/entrar' ? '/index.html' : pathname);
   },

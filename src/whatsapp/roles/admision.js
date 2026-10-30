@@ -4,6 +4,7 @@ import { normalizar } from '../../lib/texto.js';
 import { guardarPendiente, borrarPendiente } from '../comun.js';
 
 export const CLAVES_INFO = {
+  presentacion: 'Carta de presentación: lo mejor del colegio (propuesta educativa, valores, logros, talleres)',
   pension: 'Pensiones y matrícula', horarios: 'Horarios de ingreso, salida y atención', calendario: 'Calendario del año',
   utiles: 'Lista de útiles por nivel', pagos: 'Fechas y formas de pago', requisitos: 'Trámites y requisitos de admisión', visitas: 'Horarios para visitas',
 };
@@ -43,6 +44,7 @@ export async function responderFamilia(env, colegio, tel, texto, estado) {
   const t = normalizar(texto);
   const info = await infoColegio(env, colegio);
   const fin = colegio.es_demo ? { paso: 'menu' } : null; // en la demo la familia sigue en su conversación
+  const carta = env.URL_BASE ? `\n\n📄 Carta de presentación del colegio: ${env.URL_BASE}/carta/${colegio.slug}` : '';
   const seguir = (r, nuevo) => (nuevo ? guardarPendiente(env, colegio, tel, 'adm', nuevo).then(() => r) : borrarPendiente(env, colegio, tel).then(() => r));
 
   if (estado?.paso === 'nombre') {
@@ -55,7 +57,7 @@ export async function responderFamilia(env, colegio, tel, texto, estado) {
     const horarios = (info.visitas || '').split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 6);
     if (!horarios.length) {
       await guardarLead(env, colegio, tel, estado.nombre, grado);
-      return seguir('Anotamos tu interés. Secretaría te contactará en horario de atención para coordinar la visita.', fin);
+      return seguir('Anotamos tu interés. Secretaría te contactará en horario de atención para coordinar la visita.' + carta, fin);
     }
     return seguir('Estos son los horarios disponibles para la visita:\n' + horarios.map((h, i) => `${i + 1}️⃣ ${h}`).join('\n') + '\n\nResponde con el número.', { paso: 'horario', nombre: estado.nombre, grado, horarios });
   }
@@ -65,7 +67,7 @@ export async function responderFamilia(env, colegio, tel, texto, estado) {
     if (!h) return seguir('Responde con el número del horario que prefieres.', estado);
     const lead = await guardarLead(env, colegio, tel, estado.nombre, estado.grado);
     await env.DB.prepare('INSERT INTO visitas (colegio_id, lead_id, horario) VALUES (?, ?, ?)').bind(colegio.id, lead, h).run();
-    return seguir(`✅ Listo, ${estado.nombre.split(' ')[0]}. Te esperamos: *${h}* en ${colegio.nombre}.${colegio.direccion ? '\n📍 ' + colegio.direccion : ''}\nSi necesitas cambiarla, escríbenos por aquí.`, fin);
+    return seguir(`✅ Listo, ${estado.nombre.split(' ')[0]}. Te esperamos: *${h}* en ${colegio.nombre}.${colegio.direccion ? '\n📍 ' + colegio.direccion : ''}\nSi necesitas cambiarla, escríbenos por aquí.${carta}`, fin);
   }
 
   if (/^(1|pension|pensiones|matricula|costo|precio|cuanto)\b/.test(t) || /\b(pension|pensiones|matricula|costo)\b/.test(t)) return info.pension ? `💰 *Pensiones y matrícula*\n${info.pension}` : 'Esa información la brinda secretaría. ¿Quieres que te contacten? Escribe *5*.';

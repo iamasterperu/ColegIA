@@ -11,10 +11,13 @@ import {
 import { responderPadre, menuPadre, hijosDe, tieneConsentimiento, registrarConsentimientoWa, voucherPadre } from './roles/padre.js';
 import { responderPersonal, menuPersonal, ejecutarConfirmada, gradoEn } from './roles/personal.js';
 import { responderAlumno, menuAlumno } from './roles/alumno.js';
+import { continuarLista, registrarMiCumple } from './roles/automatizacion.js';
+import { responderReinscripcion } from './reinscripcion.js';
 import { registrarEntregas } from './roles/docente.js';
 import { notasPorFoto } from './roles/registro.js';
 import { cargaImagen, cargaExcel, confirmarUtiles } from './roles/carga.js';
 import { leerImagen, hayIA } from '../ia/modelo.js';
+import { leerPdf, leerWeb, urlEnTexto, esPdf } from '../ia/fuentes.js';
 import { responderFamilia, informeGeneral, infoColegio, BIENVENIDA_FAMILIA } from './roles/admision.js';
 
 const menuDe = (persona, colegio) => (persona.rol === 'padre' ? menuPadre(persona, colegio)
@@ -146,6 +149,11 @@ export async function procesarEntrante(env, conexion, entrada) {
       const aviso = origen ? `\nAviso de privacidad: ${origen}/privacidad?c=${colegio.slug}` : '';
       return responder(`Hola ${persona.nombre}, soy el asistente de *${colegio.nombre}*. Para darte información de tu hijo(a) por WhatsApp necesitamos tu autorización (Ley 29733).\n\n${FINALIDADES.whatsapp.texto.replaceAll('{colegio}', colegio.nombre)}${aviso}\n\nResponde *ACEPTO* para autorizar.`);
     }
+    const cumple = await registrarMiCumple(env, colegio, persona, texto);
+    if (cumple) return responder(cumple);
+    // Respuesta a la campaña de reinscripción
+    const reinsc = await responderReinscripcion(env, colegio, persona, texto, hijos);
+    if (reinsc) return responder(reinsc);
     // Foto del voucher
     if (entrada.imagen) {
       const avisarContabilidad = async (reportadoId, aviso, pendientePago) => {
@@ -162,16 +170,30 @@ export async function procesarEntrante(env, conexion, entrada) {
     }
   }
 
+  if (persona.rol !== 'padre') {
+    const cumple = await registrarMiCumple(env, colegio, persona, texto);
+    if (cumple) return responder(cumple);
+  }
+
   // ---- Personal: fotos y archivos ----
   if (persona.rol !== 'padre' && (entrada.imagen || entrada.documento)) {
     const intencion = porReglas(persona.rol, texto).intencion;
-    if (entrada.documento) {
-      if (!['secretaria', 'direccion'].includes(persona.rol)) return responder('Puedo recibir archivos Excel de secretaría o dirección.');
+    if (entrada.documento && esPdf(entrada.documento) && ['profesor', 'direccion'].includes(persona.rol)) {
+      let pdf;
+      try { pdf = await leerPdf(env, entrada.documento); } catch (e) { return responder(`${e.message} Prueba con una foto de la página del libro.`); }
+      if (['examen', 'sesion', 'adaptar'].includes(intencion)) {
+        entrada.fuente = pdf; entrada.origenFuente = 'pdf';
+      } else {
+        await guardarPendiente(env, colegio, tel, 'fuente', { texto: pdf.slice(0, 4000), origenFuente: 'pdf' });
+        return responder(`📄 Leí el PDF "${(entrada.documento.nombre || '').slice(0, 40)}".\n\n¿Qué preparo con esto? Por ejemplo: *examen de 10 preguntas para 2° de secundaria*, *sesión de 90 minutos* o *adaptar para un alumno con dislexia*.`);
+      }
+    } else if (entrada.documento) {
+      if (!['secretaria', 'direccion'].includes(persona.rol)) return responder('Puedo recibir archivos Excel de secretaría o dirección, y PDF de profesores para armar exámenes.');
       const r = await cargaExcel(env, colegio, persona, entrada.documento);
       if (r.pendiente) await guardarPendiente(env, colegio, tel, r.pendiente.accion, r.pendiente.datos);
       return responder(r.texto);
     }
-    if (['secretaria', 'direccion'].includes(persona.rol) && !['examen', 'sesion', 'adaptar'].includes(intencion)) {
+    if (!entrada.fuente && ['secretaria', 'direccion'].includes(persona.rol) && !['examen', 'sesion', 'adaptar'].includes(intencion)) {
       try {
         const r = await cargaImagen(env, colegio, persona, entrada.imagen, texto);
         if (r.pendiente) await guardarPendiente(env, colegio, tel, r.pendiente.accion, r.pendiente.datos);
@@ -180,7 +202,7 @@ export async function procesarEntrante(env, conexion, entrada) {
         return responder('No pude leer bien la foto. Intenta con una foto de frente, nítida y con buena luz.');
       }
     }
-    if ((persona.rol === 'profesor' || persona.rol === 'direccion') && /\b(nota|notas|registro)\b/i.test(texto)) {
+    if (!entrada.fuente && (persona.rol === 'profesor' || persona.rol === 'direccion') && /\b(nota|notas|registro)\b/i.test(texto)) {
       try {
         const r = await notasPorFoto(env, colegio, persona, entrada.imagen, texto);
         if (r.pendiente) await guardarPendiente(env, colegio, tel, r.pendiente.accion, r.pendiente.datos);
@@ -189,7 +211,9 @@ export async function procesarEntrante(env, conexion, entrada) {
         return responder('No pude leer bien el registro. Intenta con una foto de frente, nítida y con buena luz.');
       }
     }
-    if (persona.rol === 'profesor' || persona.rol === 'direccion') {
+    if (entrada.fuente) {
+      // ya se leyó el PDF: sigue el flujo normal con el material como fuente
+    } else if (persona.rol === 'profesor' || persona.rol === 'direccion') {
       if (!hayIA(env)) return responder('No puedo leer fotos en este momento.');
       let fuente;
       try {
@@ -198,9 +222,9 @@ export async function procesarEntrante(env, conexion, entrada) {
         return responder('No pude leer bien la foto. Intenta con una foto de frente y con buena luz.');
       }
       if (['examen', 'sesion', 'adaptar'].includes(intencion)) {
-        entrada.fuente = fuente;
+        entrada.fuente = fuente; entrada.origenFuente = 'foto';
       } else {
-        await guardarPendiente(env, colegio, tel, 'fuente', { texto: fuente.slice(0, 4000) });
+        await guardarPendiente(env, colegio, tel, 'fuente', { texto: fuente.slice(0, 4000), origenFuente: 'foto' });
         return responder(`📖 Leí la foto:\n"${fuente.slice(0, 300)}…"\n\n¿Qué preparo con esto? Por ejemplo: *examen de 10 preguntas para 2° de secundaria*, *sesión de 90 minutos* o *adaptar para un alumno con dislexia*.`);
       }
     } else {
@@ -211,6 +235,7 @@ export async function procesarEntrante(env, conexion, entrada) {
   // ---- ¿Esperábamos una respuesta? (confirmación, elección, un dato, útiles o una foto) ----
   let interpretado = null;
   let fuente = entrada.fuente || null;
+  let origenFuente = entrada.origenFuente || (fuente ? 'foto' : 'tema');
   const pendiente = await leerPendiente(env, colegio, tel);
   if (pendiente) {
     const r = porReglas(persona.rol, texto);
@@ -239,8 +264,15 @@ export async function procesarEntrante(env, conexion, entrada) {
         await guardarPendiente(env, colegio, tel, c.pendiente.accion, c.pendiente.datos);
         return responder(c.texto);
       }
+    } else if (pendiente.accion === 'lista') {
+      const r2 = await continuarLista(env, colegio, persona, pendiente.datos, texto);
+      if (r2) {
+        if (r2.pendiente) await guardarPendiente(env, colegio, tel, r2.pendiente.accion, r2.pendiente.datos); else await borrarPendiente(env, colegio, tel);
+        return responder(r2.texto);
+      }
+      await borrarPendiente(env, colegio, tel);
     } else if (pendiente.accion === 'fuente') {
-      fuente = pendiente.datos.texto;
+      fuente = pendiente.datos.texto; origenFuente = pendiente.datos.origenFuente || 'foto';
       await borrarPendiente(env, colegio, tel);
     } else if (pendiente.accion === 'pedir' && !['menu', 'no', 'gracias'].includes(r.intencion)) {
       await borrarPendiente(env, colegio, tel);
@@ -252,8 +284,16 @@ export async function procesarEntrante(env, conexion, entrada) {
     if (g) return responder(g);
   }
   interpretado ||= await interpretar(env, persona.rol, texto);
+  // Una dirección web en el pedido se lee como material de origen del examen o la sesión
+  if (!fuente && ['profesor', 'direccion'].includes(persona.rol) && ['examen', 'sesion', 'adaptar'].includes(interpretado.intencion)) {
+    const url = urlEnTexto(texto);
+    if (url) {
+      try { fuente = await leerWeb(url); origenFuente = 'web'; interpretado.consulta = String(interpretado.consulta || '').replace(url, '').trim(); }
+      catch (e) { return responder(`No pude usar esa página: ${e.message} Puedes enviarme el PDF o una foto del texto.`); }
+    }
+  }
   const contexto = {
-    ...interpretado, consulta: interpretado.consulta ?? '', texto, origen, fuente,
+    ...interpretado, consulta: interpretado.consulta ?? '', texto, origen, fuente, origenFuente: fuente ? origenFuente : 'tema',
     avisarYa: (aviso) => responder(aviso),
   };
 

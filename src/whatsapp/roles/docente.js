@@ -23,7 +23,7 @@ async function conIA(fn) {
 }
 
 // ---------- Asistente docente ----------
-async function examen(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente }) {
+async function examen(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente, origenFuente }) {
   const pedido = (consulta || texto).trim();
   if (pedido.length < 8) {
     return { texto: 'Cuéntame qué examen necesitas. Ejemplo: "examen de 20 preguntas de fracciones para 2° de primaria". También puedes enviarme una foto del libro o del sílabo.', pendiente: { accion: 'pedir', datos: { intencion: 'examen' } } };
@@ -32,7 +32,7 @@ async function examen(env, colegio, persona, { consulta, texto, origen, avisarYa
   await avisarYa(`⏳ Preparando tu examen de ${cantidadPedida(pedido)} preguntas con versión A, versión B, solucionario y rúbrica. Tarda menos de un minuto…`);
   return conIA(async () => {
     const ex = await generarExamen(env, { pedido, fuente });
-    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'examen', titulo: ex.titulo, grado: ex.grado, curso: ex.curso, pedido, contenido: ex });
+    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'examen', titulo: ex.titulo, grado: ex.grado, curso: ex.curso, pedido, contenido: ex, fuente: origenFuente });
     await auditoria(env, colegio, persona, 'crear_examen', 'documento', d.id).run();
     const doc = { titulo: ex.titulo };
     const enlaces = PARTES.examen.map(([p, n]) => `• ${n}: ${enlace(origen, d.token, p)}`).join('\n');
@@ -43,14 +43,14 @@ async function examen(env, colegio, persona, { consulta, texto, origen, avisarYa
   });
 }
 
-async function sesion(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente }) {
+async function sesion(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente, origenFuente }) {
   const pedido = (consulta || texto).trim();
   if (pedido.length < 8) return { texto: '¿Sobre qué tema y para qué grado? Ejemplo: "sesión sobre el ciclo del agua para 4° de primaria".', pendiente: { accion: 'pedir', datos: { intencion: 'sesion' } } };
   if (!hayIA(env)) return { texto: SIN_IA };
   await avisarYa('⏳ Planificando tu sesión de aprendizaje…');
   return conIA(async () => {
     const s = await generarSesion(env, fuente ? `${pedido}\nContenido de referencia: ${fuente.slice(0, 2500)}` : pedido);
-    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'sesion', titulo: s.titulo || pedido, grado: s.grado, curso: s.curso, pedido, contenido: s });
+    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'sesion', titulo: s.titulo || pedido, grado: s.grado, curso: s.curso, pedido, contenido: s, fuente: origenFuente });
     await auditoria(env, colegio, persona, 'crear_sesion', 'documento', d.id).run();
     return {
       texto: `✅ *Sesión: ${s.titulo}*\n🎯 ${s.proposito || ''}\n\nInicio: ${(s.inicio || []).slice(0, 2).join(' ')}\n…\nPDF completo: ${enlace(origen, d.token, 'sesion')}`,
@@ -59,13 +59,13 @@ async function sesion(env, colegio, persona, { consulta, texto, origen, avisarYa
   });
 }
 
-async function adaptar(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente }) {
+async function adaptar(env, colegio, persona, { consulta, texto, origen, avisarYa, fuente, origenFuente }) {
   const pedido = `${consulta || texto}${fuente ? `\nMaterial original:\n${fuente.slice(0, 2500)}` : ''}`;
   if (!hayIA(env)) return { texto: SIN_IA };
   await avisarYa('⏳ Adaptando el material…');
   return conIA(async () => {
     const t = await adaptarMaterial(env, pedido);
-    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'material', titulo: 'Material adaptado', pedido, contenido: { texto: t } });
+    const d = await guardarDocumento(env, colegio.id, persona.usuario.id, { tipo: 'material', titulo: 'Material adaptado', pedido, contenido: { texto: t }, fuente: origenFuente });
     return { texto: `${t.slice(0, 2500)}\n\nPDF: ${enlace(origen, d.token, 'texto')}` };
   });
 }
