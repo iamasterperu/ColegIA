@@ -22,7 +22,19 @@ async function llamar(metodo, ruta, datos) {
   return cuerpo;
 }
 
+// Sube un archivo tal cual (foto o PDF) como cuerpo de la petición
+async function subir(ruta, archivo, tipo) {
+  const resp = await fetch(ruta, { method: 'POST', credentials: 'same-origin', headers: { 'x-colegia': '1', 'content-type': tipo }, body: archivo });
+  const cuerpo = (resp.headers.get('content-type') || '').includes('json') ? await resp.json() : {};
+  if (!resp.ok) {
+    if (resp.status === 401) window.dispatchEvent(new Event('colegia:sesion-vencida'));
+    throw new ErrorApi(resp.status, cuerpo?.error || 'No se pudo subir el archivo');
+  }
+  return cuerpo;
+}
+
 export const api = {
+  subir,
   get: (ruta) => llamar('GET', ruta),
   post: (ruta, datos = {}) => llamar('POST', ruta, datos),
   put: (ruta, datos = {}) => llamar('PUT', ruta, datos),

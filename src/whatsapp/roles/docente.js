@@ -3,6 +3,7 @@
 import { alcanceAlumnos, tiene } from '../../lib/permisos.js';
 import { normalizar } from '../../lib/texto.js';
 import { alumnosEnRiesgo, radarExamen } from '../../lib/riesgo.js';
+import { nivelDe } from '../../lib/calificar.js';
 import { generarExamen, generarSesion, adaptarMaterial, traducir, cantidadPedida } from '../../ia/docente.js';
 import { guardarDocumento, enlace, archivo, PARTES } from '../../ia/documentos.js';
 import { hayIA, SinIA } from '../../ia/modelo.js';
@@ -103,9 +104,10 @@ async function resultados(env, colegio, persona, { consulta }) {
     if (encontrados.length !== 1) { dudas.push(nombre); continue; }
     const a = encontrados[0];
     lotes.push(env.DB.prepare(
-      `INSERT INTO examen_resultados (documento_id, alumno_id, falladas, puntaje, registrado_por) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(documento_id, alumno_id) DO UPDATE SET falladas = excluded.falladas, puntaje = excluded.puntaje`,
-    ).bind(doc.id, a.id, JSON.stringify(nums), Math.round(((total - nums.length) / total) * 200) / 10, persona.usuario.id));
+      `INSERT INTO examen_resultados (documento_id, alumno_id, falladas, puntaje, registrado_por, porcentaje, nivel, sin_detalle, origen) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'whatsapp')
+       ON CONFLICT(documento_id, alumno_id) DO UPDATE SET falladas = excluded.falladas, puntaje = excluded.puntaje, porcentaje = excluded.porcentaje, nivel = excluded.nivel, sin_detalle = 0, origen = excluded.origen`,
+    ).bind(doc.id, a.id, JSON.stringify(nums), Math.round(((total - nums.length) / total) * 200) / 10, persona.usuario.id,
+      Math.round(((total - nums.length) / total) * 1000) / 10, nivelDe(((total - nums.length) / total) * 100)));
     ok.push(`${a.nombres} ${a.apellidos}: ${Math.round(((total - nums.length) / total) * 200) / 10}`);
   }
   if (lotes.length) await env.DB.batch(lotes);
@@ -118,10 +120,10 @@ async function radar(env, colegio, persona, { consulta }) {
   const r = await radarExamen(env, doc);
   if (!r.alumnos.length) return { texto: `"${doc.titulo}" todavía no tiene resultados. Envíalos así: *resultados ${doc.id}: Mateo Quispe 2 5 9*` };
   const barra = (x) => '█'.repeat(Math.round(x * 10)) + '░'.repeat(10 - Math.round(x * 10));
-  const refuerzo = r.alumnos.filter((a) => a.falladas.length / r.total >= 0.5);
+  const refuerzo = r.alumnos.filter((a) => (a.sin_detalle ? a.porcentaje < 50 : a.falladas.length / r.total >= 0.5));
   return { texto: `📡 *Radar de temas — ${doc.titulo}*\n(${r.alumnos.length} alumnos calificados)\n` +
     r.temas.map((t) => `${barra(t.error)} ${pct(t.error)} ${t.tema}`).join('\n') +
-    `\n\n🔴 Reforzar primero: *${r.temas[0].tema}*` +
+    (r.temas[0]?.errores ? `\n\n🔴 Reforzar primero: *${r.temas[0].tema}*` : '') +
     (refuerzo.length ? `\n🙋 Necesitan ayuda: ${refuerzo.slice(0, 8).map((a) => `${a.nombres} ${a.apellidos.split(' ')[0]}`).join(', ')}` : '') };
 }
 

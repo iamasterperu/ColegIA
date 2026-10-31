@@ -25,7 +25,8 @@ ROLES = [
    "Busca a cualquier alumno y sus contactos con solo escribir su nombre.",
    "Carga fichas de matrícula y listas desde una foto o un Excel.",
    "Avisa a un grado completo y a cada padre los útiles que le faltan.",
-   "Bandeja de mensajes de padres por atender y autorizaciones de WhatsApp pendientes."]},
+   "Bandeja de mensajes de padres por atender y autorizaciones de WhatsApp pendientes.",
+   "Constancias y diplomas con el diseño del colegio, reinscripción y carta de presentación para familias nuevas."]},
  {"id": "contabilidad", "nombre": "Contabilidad", "color": "AMB",
   "piloto": [
    "Ve la demostración con datos ficticios: morosos, registro de pagos, recordatorios y vouchers.",
@@ -36,7 +37,7 @@ ROLES = [
    "Registra pagos por Yape, Plin, transferencia, efectivo o tarjeta.",
    "Recordatorios amables antes y después del vencimiento, también automáticos.",
    "Los padres mandan la foto del voucher y contabilidad lo confirma o rechaza.",
-   "Boletas y facturas electrónicas con el proveedor del colegio (por desarrollar)."]},
+   "Boletas y facturas electrónicas con Nubefact, al activar el contrato."]},
  {"id": "docentes", "nombre": "Docentes", "color": "CORAL",
   "piloto": [
    "Exámenes con versión A y B y solucionario, a partir de un tema, el sílabo o la foto de una página.",
@@ -45,11 +46,12 @@ ROLES = [
    "Traducción de textos y comunicados.",
    "Solo hace falta registrar su nombre y celular."],
   "contrato": [
-   "Asistencia, faltas y tardanzas por WhatsApp.",
+   "Toma de lista por WhatsApp: se registra sola y la directora recibe el resumen diario.",
    "Notas por texto o por la foto del registro.",
    "Resultados del examen por pregunta y radar de temas débiles del aula.",
    "Alumnos en riesgo, alertas de salud y justificaciones de sus padres.",
-   "Aviso a los padres de su aula y registro de útiles entregados."]},
+   "Aviso a los padres de su aula y registro de útiles entregados.",
+   "Los exámenes que crea quedan registrados (curso, profesor y clase) y se reportan a la directora."]},
  {"id": "auxiliares", "nombre": "Auxiliares", "color": "VIO",
   "piloto": [
    "Sin uso en el piloto: sus tareas dependen de la lista de alumnos."],
@@ -67,7 +69,8 @@ ROLES = [
    "Lista de útiles de su hijo y lo que falta.",
    "Notas, asistencia y justificación de faltas.",
    "Comunicados con confirmación de lectura y recordatorios de pago.",
-   "Hablar con secretaría, y ver o retirar sus autorizaciones."]},
+   "Hablar con secretaría, y ver o retirar sus autorizaciones.",
+   "Saludo de cumpleaños para su hijo y para ellos, y comunicados por fechas especiales."]},
  {"id": "alumnos", "nombre": "Alumnos", "color": "AMB",
   "piloto": [
    "No participan. Opcional: el test vocacional Rumbo para 4.° y 5.° de secundaria, con resultados que se quedan en su dispositivo."],

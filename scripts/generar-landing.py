@@ -125,7 +125,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   <h2>Pruébalo con tu colegio</h2>
   <p class="sub" style="margin-inline:auto">Precio fijo mensual por colegio, según su tamaño. No se cobra por alumno.</p>
   <div class="btns"><a class="btn p" href="/entrar" style="background:var(--navy);color:#fff">Entrar a la demo</a><a class="btn s" href="mailto:iamasterperu@gmail.com" style="border-color:var(--navy);color:var(--navy)">iamasterperu@gmail.com</a></div>
-  <p class="note" style="color:var(--muted);margin-inline:auto">Bruce Jonathan Ruiz Avendaño · IAMASTER · Chorrillos, Lima</p>
+  <p class="note" style="color:var(--muted);margin-inline:auto">IAMASTER · Chorrillos, Lima</p>
 </div></section>
 <footer>ColegIA es una creación de <a href="https://iamaster.iamasterperu.workers.dev/">IAMASTER</a>.</footer>
 </body>

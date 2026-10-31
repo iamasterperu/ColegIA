@@ -22,7 +22,7 @@ export async function alumnosEnRiesgo(env, colegioId, alcance = { sql: '1 = 1', 
     q(`SELECT a.id, COUNT(*) n, GROUP_CONCAT(DISTINCT t.tema) temas FROM tutor_temas t JOIN alumnos a ON a.id = t.alumno_id
         WHERE t.colegio_id = ? AND t.trabado = 1 AND t.creado_en >= datetime('now', '-14 days') AND ${alcance.sql}
         GROUP BY a.id HAVING n >= ?`, colegioId, ...alcance.params, UMBRALES.trabado),
-    q(`SELECT a.id, r.falladas, d.contenido, d.titulo FROM examen_resultados r JOIN alumnos a ON a.id = r.alumno_id
+    q(`SELECT a.id, r.falladas, r.porcentaje, r.sin_detalle, d.contenido, d.titulo FROM examen_resultados r JOIN alumnos a ON a.id = r.alumno_id
         JOIN documentos d ON d.id = r.documento_id
         WHERE a.colegio_id = ? AND r.creado_en >= datetime('now', '-30 days') AND ${alcance.sql}`, colegioId, ...alcance.params),
   ])).map((r) => r.results);
@@ -36,6 +36,7 @@ export async function alumnosEnRiesgo(env, colegioId, alcance = { sql: '1 = 1', 
   for (const t of trabados) agregar(t.id, `se trabó ${t.n} veces con el tutor IA (${String(t.temas).split(',').slice(0, 3).join(', ')})`);
   for (const e of examenes) {
     const total = JSON.parse(e.contenido || '{}').preguntas?.length || 0;
+    if (e.sin_detalle) { if (e.porcentaje != null && e.porcentaje < (1 - UMBRALES.errorExamen) * 100) agregar(e.id, `sacó ${Math.round(e.porcentaje)}% en "${e.titulo}"`); continue; }
     const mal = JSON.parse(e.falladas || '[]').length;
     if (total && mal / total >= UMBRALES.errorExamen) agregar(e.id, `falló ${mal} de ${total} en "${e.titulo}"`);
   }
@@ -51,12 +52,13 @@ export async function alumnosEnRiesgo(env, colegioId, alcance = { sql: '1 = 1', 
 export async function radarExamen(env, documento) {
   const ex = typeof documento.contenido === 'string' ? JSON.parse(documento.contenido) : documento.contenido;
   const { results } = await env.DB.prepare(
-    `SELECT r.alumno_id, r.falladas, r.puntaje, a.nombres, a.apellidos FROM examen_resultados r JOIN alumnos a ON a.id = r.alumno_id
+    `SELECT r.alumno_id, r.falladas, r.puntaje, r.porcentaje, r.nivel, r.sin_detalle, a.nombres, a.apellidos FROM examen_resultados r JOIN alumnos a ON a.id = r.alumno_id
       WHERE r.documento_id = ? ORDER BY r.puntaje`,
   ).bind(documento.id).all();
   const temas = {};
   ex.preguntas.forEach((q) => { temas[q.tema] ??= { tema: q.tema, preguntas: 0, errores: 0, intentos: 0 }; temas[q.tema].preguntas++; });
   for (const r of results) {
+    if (r.sin_detalle) continue;
     const mal = new Set(JSON.parse(r.falladas));
     ex.preguntas.forEach((q, i) => {
       temas[q.tema].intentos++;

@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { html, crudo, $, fecha, cargando, vacio, aviso, conBoton, pct } from '../ui.js';
 import { sesion } from '../app.js';
 
+const NIVEL = { bueno: ['✅ Buena nota', 'color:#0a7a3d;font-weight:600'], regular: ['🟡 Reforzar', 'color:#8a6100;font-weight:600'], ayuda: ['🔴 Necesita ayuda', 'color:#b3261e;font-weight:600'] };
 const TIPO = { examen: '📝 Examen', sesion: '📘 Sesión', material: '🧩 Material adaptado', texto: '📄 Documento' };
 
 export async function mostrar(vista, [id]) {
@@ -18,6 +19,15 @@ export async function mostrar(vista, [id]) {
       <form class="form" id="f-doc"><div class="form-fila">
         <label style="grid-column: span 3">¿Qué necesitas?<input name="pedido" required minlength="8" placeholder="Examen de 10 preguntas sobre el sistema solar para 4° de primaria"></label>
         <label>Tipo<select name="tipo"><option value="examen">Examen A/B</option><option value="sesion">Sesión de clase</option></select></label></div>
+        <fieldset class="fuente" style="border:1px dashed var(--borde,#c9cfdb);border-radius:10px;padding:12px;margin:10px 0">
+          <legend class="pequeno">Basar el examen en tu material (opcional)</legend>
+          <p class="pequeno" style="margin:0 0 8px">Sube una foto de la página del libro, del sílabo o de tu pizarra, un PDF, o pega el enlace de una página web. El examen se arma con eso.</p>
+          <div class="form-fila">
+            <label>Foto o PDF<input type="file" id="f-archivo" accept="image/*,application/pdf"></label>
+            <label style="grid-column: span 2">O enlace de una página web<input type="url" id="f-url" placeholder="https://..."></label>
+          </div>
+          <div id="f-estado" class="pequeno" role="status"></div>
+        </fieldset>
         <button class="btn btn-primario">Crear con IA</button></form></section>`) : ''}
     <section class="tarjeta">
       ${docs.length ? crudo(html`<div class="tabla-caja"><table>
@@ -28,16 +38,59 @@ export async function mostrar(vista, [id]) {
           <td><div class="chips">${d.pdfs.map((p) => html`<a class="chip" href="${p.url}" target="_blank" rel="noopener">${p.nombre}</a>`)}</div></td></tr>`)}</tbody></table></div>`)
         : vacio('Todavía no hay documentos. Pide uno por WhatsApp: "examen de 10 preguntas de fracciones para 2°".')}
     </section>`;
+  const estado = $('#f-estado', vista);
+  let fuente = null; // { texto, origen }
+  const leerMaterial = async (peticion) => {
+    estado.textContent = 'Leyendo tu material… (puede tardar unos segundos)';
+    try {
+      fuente = await peticion();
+      estado.innerHTML = '';
+      estado.append(`✅ Leí tu material (${{ foto: 'foto', pdf: 'PDF', web: 'página web' }[fuente.origen]}): “${fuente.texto.slice(0, 140).replace(/\s+/g, ' ')}…”`);
+    } catch (err) { fuente = null; estado.textContent = `⚠️ ${err.message}`; }
+  };
+  $('#f-archivo', vista)?.addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    fuente = null; estado.textContent = '';
+    if (!f) return;
+    $('#f-url', vista).value = '';
+    if (f.type === 'application/pdf') return leerMaterial(() => api.subir('/api/documentos/fuente', f, 'application/pdf'));
+    if (!f.type.startsWith('image/')) { estado.textContent = '⚠️ Sube una foto (JPG o PNG) o un PDF.'; return; }
+    const liviana = await reducirImagen(f);
+    return leerMaterial(() => api.subir('/api/documentos/fuente', liviana, 'image/jpeg'));
+  });
+  $('#f-url', vista)?.addEventListener('change', async (e) => {
+    const url = e.target.value.trim();
+    fuente = null; estado.textContent = '';
+    if (!url) return;
+    $('#f-archivo', vista).value = '';
+    return leerMaterial(() => api.post('/api/documentos/fuente', { url }));
+  });
   $('#f-doc', vista)?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if ($('#f-archivo', vista).files[0] && !fuente) { aviso('Espera a que termine de leer tu material, o quítalo.', 'error'); return; }
+    if ($('#f-url', vista).value.trim() && !fuente) { aviso('No pude leer ese enlace. Corrígelo o bórralo para crear sin material.', 'error'); return; }
     const boton = $('.btn-primario', e.target);
     boton.textContent = 'Creando… (hasta 1 minuto)';
     await conBoton(boton, async () => {
-      const r = await api.post('/api/documentos', Object.fromEntries(new FormData(e.target)));
+      const datos = Object.fromEntries(new FormData(e.target));
+      if (fuente) { datos.fuente = fuente.texto; datos.origen_fuente = fuente.origen; }
+      const r = await api.post('/api/documentos', datos);
       aviso('Listo: documento creado');
       location.hash = `#/docente/${r.id}`;
     });
   });
+}
+
+// Reduce la foto del celular (varios MB) a una imagen liviana antes de subirla
+export async function reducirImagen(archivo, lado = 1600) {
+  try {
+    const bmp = await createImageBitmap(archivo);
+    const k = Math.min(1, lado / Math.max(bmp.width, bmp.height));
+    const lienzo = document.createElement('canvas');
+    lienzo.width = Math.round(bmp.width * k); lienzo.height = Math.round(bmp.height * k);
+    lienzo.getContext('2d').drawImage(bmp, 0, 0, lienzo.width, lienzo.height);
+    return await new Promise((ok, fallo) => lienzo.toBlob((b) => (b ? ok(b) : fallo(new Error('x'))), 'image/jpeg', 0.85));
+  } catch { return archivo; }
 }
 
 async function detalle(vista, id) {
@@ -50,12 +103,20 @@ async function detalle(vista, id) {
     <div class="encabezado"><div><h1>${d.titulo}</h1><p>${TIPO[d.tipo]} · código ${d.id} · ${fecha(d.creado_en, true)}</p>
       <p class="pequeno">Pedido: “${d.pedido}”</p></div>
       <div class="chips">${d.pdfs.map((p) => html`<a class="btn" href="${p.url}" target="_blank" rel="noopener">${p.nombre} (PDF)</a>`)}</div></div>
+    ${d.tipo === 'examen' && ['direccion', 'profesor'].includes(sesion.usuario.rol) ? crudo(html`<section class="tarjeta" id="calif"><h2>Calificar con fotos</h2>
+      <p class="pequeno">Cuando tus alumnos terminen y tú revises los exámenes, toma una foto de cada examen calificado (que se vea el nombre y la nota, o las respuestas marcadas) y súbelas aquí.
+        ColegIA lee el nombre, la nota y el porcentaje, y marca quién sacó buena nota y quién necesita ayuda. Tú solo revisas y guardas.</p>
+      <label class="btn" style="cursor:pointer">📷 Subir fotos de exámenes calificados
+        <input type="file" id="c-fotos" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>
+      <div id="c-estado" class="pequeno" role="status" style="margin-top:8px"></div>
+      <div id="c-tabla"></div></section>`) : ''}
     ${r ? crudo(html`<section class="tarjeta"><div class="tarjeta-titulo"><h2>Radar de temas débiles</h2><span class="pequeno">${r.alumnos.length} alumnos calificados</span></div>
       ${r.alumnos.length ? crudo(html`<div class="barras-h">${r.temas.map((t) => html`<div class="barra-h" title="${t.errores} errores de ${t.intentos} respuestas">
           <span>${t.tema}</span><div class="riel"><div class="relleno" style="width:${Math.max(2, t.error * 100)}%"></div></div><span class="num">${pct(t.error)} error</span></div>`)}</div>
         <h3 style="margin-top:16px">Resultados</h3>
-        <div class="tabla-caja"><table><thead><tr><th>Alumno</th><th class="num">Nota</th><th>Preguntas falladas</th></tr></thead>
-          <tbody>${r.alumnos.map((a) => html`<tr><td>${a.apellidos}, ${a.nombres}</td><td class="num">${a.puntaje}</td><td>${a.falladas.join(', ') || '—'}</td></tr>`)}</tbody></table></div>`)
+        <div class="tabla-caja"><table><thead><tr><th>Alumno</th><th class="num">Nota (0-20)</th><th class="num">%</th><th>Cómo le fue</th><th>Preguntas falladas</th></tr></thead>
+          <tbody>${r.alumnos.map((a) => html`<tr><td>${a.apellidos}, ${a.nombres}</td><td class="num">${a.puntaje}</td><td class="num">${a.porcentaje == null ? '—' : Math.round(a.porcentaje) + '%'}</td>
+            <td>${NIVEL[a.nivel] ? crudo(html`<span class="etiqueta" style="${NIVEL[a.nivel][1]}">${NIVEL[a.nivel][0]}</span>`) : '—'}</td><td>${a.sin_detalle ? 'no se registró el detalle' : (a.falladas.join(', ') || '—')}</td></tr>`)}</tbody></table></div>`)
         : crudo(html`<p class="pequeno">Para ver el radar, el profesor envía por WhatsApp: <code>resultados ${d.id}: Mateo Quispe 2 5 9; Ana Paz 1</code></p>`)}
     </section>`) : ''}
     ${d.tipo === 'examen' ? crudo(html`<section class="tarjeta"><h2>Preguntas (versión A)</h2>
@@ -64,4 +125,68 @@ async function detalle(vista, id) {
     ${d.tipo === 'sesion' ? crudo(html`<section class="tarjeta"><h2>Propósito</h2><p>${c.proposito || ''}</p>
       ${['inicio', 'desarrollo', 'cierre'].map((k) => html`<h3>${k[0].toUpperCase() + k.slice(1)}</h3><ul>${(c[k] || []).map((p) => html`<li>${p}</li>`)}</ul>`)}</section>`) : ''}
     ${d.tipo === 'material' || d.tipo === 'texto' ? crudo(html`<section class="tarjeta"><p style="white-space:pre-wrap">${c.texto}</p></section>`) : ''}`;
+  activarCalificacion(vista, d);
+}
+
+function activarCalificacion(vista, d) {
+  const entrada = $('#c-fotos', vista);
+  if (!entrada) return;
+  const estado = $('#c-estado', vista);
+  const tabla = $('#c-tabla', vista);
+  let aula = null;
+  const filas = [];
+  const nivel = (pct) => (pct >= 70 ? 'bueno' : pct >= 50 ? 'regular' : 'ayuda');
+  const dibujar = () => {
+    if (!filas.length) { tabla.innerHTML = ''; return; }
+    const opciones = (f) => html`<option value="">— elegir alumno —</option>${aula.map((a) => html`<option value="${a.id}" ${f.alumno_id === a.id ? crudo('selected') : ''}>${a.apellidos}, ${a.nombres} (${a.grado} ${a.seccion})</option>`)}`;
+    tabla.innerHTML = html`<div class="tabla-caja" style="margin-top:12px"><table><thead><tr><th>Foto</th><th>Alumno</th><th class="num">Nota (0-20)</th><th class="num">%</th><th>Cómo le fue</th><th></th></tr></thead>
+      <tbody>${filas.map((f, i) => f.error
+        ? html`<tr><td class="pequeno">${f.nombre}</td><td colspan="4" style="color:#b3261e">⚠️ ${f.error}</td><td><button class="btn" data-quitar="${i}">Quitar</button></td></tr>`
+        : html`<tr><td class="pequeno">${f.nombre}<div>${f.alumno_leido ? `leído: ${f.alumno_leido}` : ''}</div></td>
+          <td><select data-alumno="${i}">${opciones(f)}</select></td>
+          <td class="num"><input type="number" min="0" max="20" step="0.5" value="${f.puntaje}" data-nota="${i}" style="width:70px"></td>
+          <td class="num" data-pct="${i}">${Math.round(f.porcentaje)}%</td>
+          <td data-nivel="${i}"><span class="etiqueta" style="${NIVEL[nivel(f.porcentaje)][1]}">${NIVEL[nivel(f.porcentaje)][0]}</span></td>
+          <td><button class="btn" data-quitar="${i}">Quitar</button></td></tr>`)}</tbody></table></div>
+      <label style="display:block;margin:10px 0"><input type="checkbox" id="c-bimestre"> También guardar como nota del bimestre actual en ${d.curso || 'el curso'} (puedes dejarlo sin marcar)</label>
+      <button class="btn btn-primario" id="c-guardar">Guardar ${filas.filter((f) => !f.error).length} resultado(s)</button>`.toString();
+    tabla.querySelectorAll('[data-alumno]').forEach((el) => el.addEventListener('change', () => { filas[el.dataset.alumno].alumno_id = Number(el.value) || null; }));
+    tabla.querySelectorAll('[data-nota]').forEach((el) => el.addEventListener('input', () => {
+      const f = filas[el.dataset.nota];
+      f.puntaje = Math.min(20, Math.max(0, Number(el.value) || 0)); f.porcentaje = (f.puntaje / 20) * 100; f.falladas = null;
+      tabla.querySelector(`[data-pct="${el.dataset.nota}"]`).textContent = `${Math.round(f.porcentaje)}%`;
+      const [txt, estilo] = NIVEL[nivel(f.porcentaje)];
+      tabla.querySelector(`[data-nivel="${el.dataset.nota}"]`).innerHTML = `<span class="etiqueta" style="${estilo}">${txt}</span>`;
+    }));
+    tabla.querySelectorAll('[data-quitar]').forEach((el) => el.addEventListener('click', () => { filas.splice(Number(el.dataset.quitar), 1); dibujar(); }));
+    $('#c-guardar', tabla)?.addEventListener('click', async (ev) => {
+      const validas = filas.filter((f) => !f.error);
+      if (validas.some((f) => !f.alumno_id)) { aviso('Elige el alumno de cada examen (o quita la foto).', 'error'); return; }
+      if (new Set(validas.map((f) => f.alumno_id)).size !== validas.length) { aviso('Hay dos fotos del mismo alumno. Quita una.', 'error'); return; }
+      await conBoton(ev.target, async () => {
+        const r = await api.post(`/api/documentos/${d.id}/resultados`, {
+          guardar_nota: $('#c-bimestre', tabla).checked,
+          filas: validas.map((f) => ({ alumno_id: f.alumno_id, porcentaje: f.porcentaje, falladas: f.falladas })),
+        });
+        aviso(`Listo: ${r.guardados} resultado(s) guardados${r.nota_bimestre ? ' y registrados como nota del bimestre' : ''}`);
+        detalle(vista, d.id);
+      });
+    });
+  };
+  entrada.addEventListener('change', async () => {
+    const archivos = [...entrada.files].slice(0, 40);
+    entrada.value = '';
+    if (!archivos.length) return;
+    try { aula ??= await api.get(`/api/documentos/${d.id}/aula`); } catch (e) { aviso(e.message, 'error'); return; }
+    for (let i = 0; i < archivos.length; i++) {
+      estado.textContent = `Leyendo foto ${i + 1} de ${archivos.length}…`;
+      const f = archivos[i];
+      try {
+        const lectura = await api.subir(`/api/documentos/${d.id}/calificar-foto`, await reducirImagen(f), 'image/jpeg');
+        filas.push(lectura.leido ? { nombre: f.name, ...lectura } : { nombre: f.name, error: 'No encontré la nota ni las respuestas marcadas. Toma otra foto donde se vea la nota.' });
+      } catch (e) { filas.push({ nombre: f.name, error: e.message }); }
+      dibujar();
+    }
+    estado.textContent = 'Revisa que cada alumno y nota estén bien, y guarda.';
+  });
 }

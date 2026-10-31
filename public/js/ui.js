@@ -103,5 +103,6 @@ export const ACCIONES = {
   tomar_lista: 'Tomó lista de asistencia', editar_automatizacion: 'Cambió los avisos automáticos', aprobar_borrador: 'Aprobó un comunicado', rechazar_borrador: 'Descartó un comunicado', editar_borrador: 'Editó un comunicado',
   iniciar_reinscripcion: 'Inició la reinscripción', confirmar_reinscripcion: 'Confirmó reinscripción', no_continua_reinscripcion: 'Avisó que no continúa', invitar_familias: 'Invitó a familias interesadas',
   crear_constancia: 'Preparó una constancia', crear_diploma: 'Preparó un diploma', emitir_comprobante: 'Emitió un comprobante', editar_nubefact: 'Editó la facturación electrónica',
+  leer_fuente_examen: 'Leyó material para un examen', calificar_examen_foto: 'Leyó un examen calificado', registrar_resultados_examen: 'Registró resultados de examen',
   avisar_lista_utiles: 'Avisó lista de útiles', importar_alumnos: 'Importó alumnos', importar_pagos: 'Importó pagos',
 };

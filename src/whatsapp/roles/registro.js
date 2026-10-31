@@ -17,7 +17,7 @@ export function bimestreActual(fecha = hoyLima()) {
 
 const titulo = (s) => s.trim().toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 
-async function cursoOficial(env, colegio, texto) {
+export async function cursoOficial(env, colegio, texto) {
   const { results } = await env.DB.prepare('SELECT DISTINCT curso FROM notas WHERE colegio_id = ? LIMIT 60').bind(colegio.id).all();
   const t = normalizar(texto);
   return results.map((r) => r.curso).find((c) => t.includes(normalizar(c)) || normalizar(c).startsWith(t)) || titulo(texto);
