@@ -104,7 +104,7 @@ async function detalle(vista, id) {
       <p class="pequeno">Pedido: “${d.pedido}”</p></div>
       <div class="chips">${d.pdfs.map((p) => html`<a class="btn" href="${p.url}" target="_blank" rel="noopener">${p.nombre} (PDF)</a>`)}</div></div>
     ${d.tipo === 'examen' && ['direccion', 'profesor'].includes(sesion.usuario.rol) ? crudo(html`<section class="tarjeta" id="calif"><h2>Calificar con fotos</h2>
-      <p class="pequeno">Cuando tus alumnos terminen y tú revises los exámenes, toma una foto de cada examen calificado (que se vea el nombre y la nota, o las respuestas marcadas) y súbelas aquí.
+      <p class="pequeno">Cuando tus alumnos terminen y tú revises los exámenes, toma una foto de cada hoja calificada (que se vea el nombre y la nota, o las respuestas marcadas) y súbelas aquí. Si el examen tiene varias hojas, sube las fotos en orden: la hoja con el nombre primero y después las otras hojas de ese mismo alumno; ColegIA las junta solas.
         ColegIA lee el nombre, la nota y el porcentaje, y marca quién sacó buena nota y quién necesita ayuda. Tú solo revisas y guardas.</p>
       <label class="btn" style="cursor:pointer">📷 Subir fotos de exámenes calificados
         <input type="file" id="c-fotos" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>
@@ -134,35 +134,49 @@ function activarCalificacion(vista, d) {
   const estado = $('#c-estado', vista);
   const tabla = $('#c-tabla', vista);
   let aula = null;
-  const filas = [];
+  const lecturas = []; // una por foto, en el orden en que se subieron
+  const fallidas = new Set();
+  let filas = [];
+  const ediciones = new Map(); // lo que el profesor corrigió, por grupo de fotos
+  const clave = (f) => f.fotos.join(',');
   const nivel = (pct) => (pct >= 70 ? 'bueno' : pct >= 50 ? 'regular' : 'ayuda');
+  const rango = (fotos) => (fotos.length === 1 ? `Foto ${fotos[0]}` : `Fotos ${fotos[0]}-${fotos[fotos.length - 1]}`);
   const dibujar = () => {
     if (!filas.length) { tabla.innerHTML = ''; return; }
     const opciones = (f) => html`<option value="">— elegir alumno —</option>${aula.map((a) => html`<option value="${a.id}" ${f.alumno_id === a.id ? crudo('selected') : ''}>${a.apellidos}, ${a.nombres} (${a.grado} ${a.seccion})</option>`)}`;
-    tabla.innerHTML = html`<div class="tabla-caja" style="margin-top:12px"><table><thead><tr><th>Foto</th><th>Alumno</th><th class="num">Nota (0-20)</th><th class="num">%</th><th>Cómo le fue</th><th></th></tr></thead>
-      <tbody>${filas.map((f, i) => f.error
-        ? html`<tr><td class="pequeno">${f.nombre}</td><td colspan="4" style="color:#b3261e">⚠️ ${f.error}</td><td><button class="btn" data-quitar="${i}">Quitar</button></td></tr>`
-        : html`<tr><td class="pequeno">${f.nombre}<div>${f.alumno_leido ? `leído: ${f.alumno_leido}` : ''}</div></td>
+    tabla.innerHTML = html`<div class="tabla-caja" style="margin-top:12px"><table><thead><tr><th>Fotos</th><th>Alumno</th><th class="num">Nota (0-20)</th><th class="num">%</th><th>Cómo le fue</th><th></th></tr></thead>
+      <tbody>${filas.map((f, i) => !f.leido
+        ? html`<tr><td class="pequeno">${rango(f.fotos)}<div>${f.nombre_leido ? `leído: ${f.nombre_leido}` : ''}</div></td>
+            <td><select data-alumno="${i}">${opciones(f)}</select></td>
+            <td colspan="3" style="color:#b3261e">⚠️ ${f.conflicto ? `Las hojas dicen notas distintas (${f.conflicto.join(' y ')}). Corrige la nota aquí:` : 'No encontré la nota. Escríbela aquí o toma otra foto:'}
+              <input type="number" min="0" max="20" step="0.5" data-nota="${i}" style="width:70px" placeholder="0-20"></td>
+            <td><button class="btn" data-quitar="${i}">Quitar</button></td></tr>`
+        : html`<tr><td class="pequeno">${rango(f.fotos)}<div>${f.nombre_leido ? `leído: ${f.nombre_leido}` : 'sin nombre en las hojas'}</div></td>
           <td><select data-alumno="${i}">${opciones(f)}</select></td>
           <td class="num"><input type="number" min="0" max="20" step="0.5" value="${f.puntaje}" data-nota="${i}" style="width:70px"></td>
           <td class="num" data-pct="${i}">${Math.round(f.porcentaje)}%</td>
           <td data-nivel="${i}"><span class="etiqueta" style="${NIVEL[nivel(f.porcentaje)][1]}">${NIVEL[nivel(f.porcentaje)][0]}</span></td>
           <td><button class="btn" data-quitar="${i}">Quitar</button></td></tr>`)}</tbody></table></div>
       <label style="display:block;margin:10px 0"><input type="checkbox" id="c-bimestre"> También guardar como nota del bimestre actual en ${d.curso || 'el curso'} (puedes dejarlo sin marcar)</label>
-      <button class="btn btn-primario" id="c-guardar">Guardar ${filas.filter((f) => !f.error).length} resultado(s)</button>`.toString();
-    tabla.querySelectorAll('[data-alumno]').forEach((el) => el.addEventListener('change', () => { filas[el.dataset.alumno].alumno_id = Number(el.value) || null; }));
+      <button class="btn btn-primario" id="c-guardar">Guardar resultados</button>`.toString();
+    tabla.querySelectorAll('[data-alumno]').forEach((el) => el.addEventListener('change', () => {
+      const f = filas[el.dataset.alumno]; f.alumno_id = Number(el.value) || null;
+      ediciones.set(clave(f), { ...(ediciones.get(clave(f)) || {}), alumno_id: f.alumno_id });
+    }));
     tabla.querySelectorAll('[data-nota]').forEach((el) => el.addEventListener('input', () => {
       const f = filas[el.dataset.nota];
-      f.puntaje = Math.min(20, Math.max(0, Number(el.value) || 0)); f.porcentaje = (f.puntaje / 20) * 100; f.falladas = null;
-      tabla.querySelector(`[data-pct="${el.dataset.nota}"]`).textContent = `${Math.round(f.porcentaje)}%`;
-      const [txt, estilo] = NIVEL[nivel(f.porcentaje)];
-      tabla.querySelector(`[data-nivel="${el.dataset.nota}"]`).innerHTML = `<span class="etiqueta" style="${estilo}">${txt}</span>`;
+      if (el.value === '') return;
+      f.puntaje = Math.min(20, Math.max(0, Number(el.value) || 0)); f.porcentaje = (f.puntaje / 20) * 100; f.falladas = null; f.manual = true;
+      ediciones.set(clave(f), { ...(ediciones.get(clave(f)) || {}), puntaje: f.puntaje });
+      const pct = tabla.querySelector(`[data-pct="${el.dataset.nota}"]`);
+      if (pct) { pct.textContent = `${Math.round(f.porcentaje)}%`; tabla.querySelector(`[data-nivel="${el.dataset.nota}"]`).innerHTML = `<span class="etiqueta" style="${NIVEL[nivel(f.porcentaje)][1]}">${NIVEL[nivel(f.porcentaje)][0]}</span>`; }
     }));
     tabla.querySelectorAll('[data-quitar]').forEach((el) => el.addEventListener('click', () => { filas.splice(Number(el.dataset.quitar), 1); dibujar(); }));
     $('#c-guardar', tabla)?.addEventListener('click', async (ev) => {
-      const validas = filas.filter((f) => !f.error);
-      if (validas.some((f) => !f.alumno_id)) { aviso('Elige el alumno de cada examen (o quita la foto).', 'error'); return; }
-      if (new Set(validas.map((f) => f.alumno_id)).size !== validas.length) { aviso('Hay dos fotos del mismo alumno. Quita una.', 'error'); return; }
+      const validas = filas.filter((f) => f.manual || f.leido);
+      if (!validas.length) { aviso('Falta la nota de cada alumno.', 'error'); return; }
+      if (validas.some((f) => !f.alumno_id)) { aviso('Elige el alumno de cada examen (o quita ese grupo de fotos).', 'error'); return; }
+      if (new Set(validas.map((f) => f.alumno_id)).size !== validas.length) { aviso('Hay dos grupos de fotos del mismo alumno. Quita uno.', 'error'); return; }
       await conBoton(ev.target, async () => {
         const r = await api.post(`/api/documentos/${d.id}/resultados`, {
           guardar_nota: $('#c-bimestre', tabla).checked,
@@ -173,20 +187,28 @@ function activarCalificacion(vista, d) {
       });
     });
   };
+  const reagrupar = async () => {
+    const nuevas = await api.post(`/api/documentos/${d.id}/agrupar`, { lecturas });
+    filas = nuevas.map((f) => {
+      const e = ediciones.get(clave(f));
+      if (!e) return f;
+      const g = { ...f, ...(e.alumno_id !== undefined ? { alumno_id: e.alumno_id } : {}) };
+      if (e.puntaje !== undefined) Object.assign(g, { leido: true, manual: true, puntaje: e.puntaje, porcentaje: (e.puntaje / 20) * 100, falladas: null });
+      return g;
+    });
+  };
   entrada.addEventListener('change', async () => {
-    const archivos = [...entrada.files].slice(0, 40);
+    const archivos = [...entrada.files].slice(0, 120);
     entrada.value = '';
     if (!archivos.length) return;
     try { aula ??= await api.get(`/api/documentos/${d.id}/aula`); } catch (e) { aviso(e.message, 'error'); return; }
     for (let i = 0; i < archivos.length; i++) {
       estado.textContent = `Leyendo foto ${i + 1} de ${archivos.length}…`;
-      const f = archivos[i];
-      try {
-        const lectura = await api.subir(`/api/documentos/${d.id}/calificar-foto`, await reducirImagen(f), 'image/jpeg');
-        filas.push(lectura.leido ? { nombre: f.name, ...lectura } : { nombre: f.name, error: 'No encontré la nota ni las respuestas marcadas. Toma otra foto donde se vea la nota.' });
-      } catch (e) { filas.push({ nombre: f.name, error: e.message }); }
-      dibujar();
+      try { lecturas.push(await api.subir(`/api/documentos/${d.id}/calificar-foto`, await reducirImagen(archivos[i]), 'image/jpeg')); }
+      catch { lecturas.push({}); fallidas.add(lecturas.length); }
     }
-    estado.textContent = 'Revisa que cada alumno y nota estén bien, y guarda.';
+    try { await reagrupar(); dibujar(); } catch (e) { aviso(e.message, 'error'); }
+    estado.textContent = (fallidas.size ? `⚠️ No pude leer: foto ${[...fallidas].join(', ')}. ` : '') +
+      'Si el examen tiene varias hojas, sube las fotos en orden: primero la hoja con el nombre y luego las siguientes de ese alumno. Revisa y guarda.';
   });
 }

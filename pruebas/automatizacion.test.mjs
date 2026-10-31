@@ -9,7 +9,7 @@ import { responderCarta } from '../src/lib/carta.js';
 import { respuestaPieza } from '../src/lib/plantillas.js';
 import { leerWeb } from '../src/ia/fuentes.js';
 
-const DB = crearDB(['migrations/0000_esquema_base.sql', 'migrations/0001_admision_informes_demo.sql', 'migrations/0002_automatizacion.sql', 'migrations/0003_calificar_fotos.sql']);
+const DB = crearDB(['migrations/0000_esquema_base.sql', 'migrations/0001_admision_informes_demo.sql', 'migrations/0002_automatizacion.sql', 'migrations/0003_calificar_fotos.sql', 'migrations/0004_calificar_whatsapp.sql']);
 const env = { DB, URL_BASE: 'https://colegia.test', MASTER_KEY: Buffer.alloc(32, 7).toString('base64') };
 const sql = (q) => DB._raw.exec(q);
 const uno = (q, ...p) => DB._raw.prepare(q).get(...p);

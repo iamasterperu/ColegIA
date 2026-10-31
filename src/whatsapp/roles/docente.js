@@ -38,7 +38,7 @@ async function examen(env, colegio, persona, { consulta, texto, origen, avisarYa
     const doc = { titulo: ex.titulo };
     const enlaces = PARTES.examen.map(([p, n]) => `• ${n}: ${enlace(origen, d.token, p)}`).join('\n');
     return {
-      texto: `✅ *${ex.titulo}* — ${ex.preguntas.length} preguntas (código ${d.id}).\n${enlaces}\n\nCuando lo califiques, envíame: *resultados ${d.id}: Mateo Quispe 2 5 9* (las preguntas que falló cada alumno) y te armo el radar de temas débiles.`,
+      texto: `✅ *${ex.titulo}* — ${ex.preguntas.length} preguntas (código ${d.id}).\n${enlaces}\n\nCuando lo califiques, escribe *calificar ${d.id}* y mándame las fotos de cada examen revisado (aunque tenga varias hojas, en orden) y registro nota, porcentaje y quién necesita ayuda. También puedes escribir: *resultados ${d.id}: Mateo Quispe 2 5 9*.`,
       documento: { url: enlace(origen, d.token, 'a'), nombre: archivo(doc, 'version_A') },
     };
   });

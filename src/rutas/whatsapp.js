@@ -224,7 +224,7 @@ async function procesarWebhook(env, colegio, datos, origen) {
         }
       }
       for (const m of (v.messages || []).slice(0, 5)) {
-        const base = { telefono: m.from, waId: m.id, origen };
+        const base = { telefono: m.from, waId: m.id, origen, ts: Number(m.timestamp) || null };
         if (m.type === 'audio' && conexion.modo === 'cloud') {
           let audio = null;
           try { audio = await descargarMedia(env, conexion, m.audio.id); } catch { /* se atiende como audio sin archivo */ }

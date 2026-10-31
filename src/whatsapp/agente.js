@@ -14,6 +14,7 @@ import { responderAlumno, menuAlumno } from './roles/alumno.js';
 import { continuarLista, registrarMiCumple } from './roles/automatizacion.js';
 import { responderReinscripcion } from './reinscripcion.js';
 import { registrarEntregas } from './roles/docente.js';
+import { DISPARO_FOTO, PIDE_CALIFICAR, iniciarCalificacion, recibirHoja, continuarCalificacion, haySesionReciente } from './roles/calificar.js';
 import { notasPorFoto } from './roles/registro.js';
 import { cargaImagen, cargaExcel, confirmarUtiles } from './roles/carga.js';
 import { leerImagen, hayIA } from '../ia/modelo.js';
@@ -177,6 +178,12 @@ export async function procesarEntrante(env, conexion, entrada) {
 
   // ---- Personal: fotos y archivos ----
   if (persona.rol !== 'padre' && (entrada.imagen || entrada.documento)) {
+    if (entrada.imagen && !entrada.documento && ['profesor', 'direccion'].includes(persona.rol)) {
+      const pend = await leerPendiente(env, colegio, tel);
+      if (pend?.accion === 'calificando' || DISPARO_FOTO.test(texto) || (await haySesionReciente(env, colegio, tel))) {
+        return responder((await recibirHoja(env, colegio, persona, tel, entrada, pend)).texto);
+      }
+    }
     const intencion = porReglas(persona.rol, texto).intencion;
     if (entrada.documento && esPdf(entrada.documento) && ['profesor', 'direccion'].includes(persona.rol)) {
       let pdf;
@@ -237,6 +244,9 @@ export async function procesarEntrante(env, conexion, entrada) {
   let fuente = entrada.fuente || null;
   let origenFuente = entrada.origenFuente || (fuente ? 'foto' : 'tema');
   const pendiente = await leerPendiente(env, colegio, tel);
+  if (['profesor', 'direccion'].includes(persona.rol) && PIDE_CALIFICAR.test(texto)) {
+    return responder((await iniciarCalificacion(env, colegio, persona, tel, texto)).texto);
+  }
   if (pendiente) {
     const r = porReglas(persona.rol, texto);
     if (pendiente.accion === 'confirmar') {
@@ -271,6 +281,9 @@ export async function procesarEntrante(env, conexion, entrada) {
         return responder(r2.texto);
       }
       await borrarPendiente(env, colegio, tel);
+    } else if (pendiente.accion === 'calificando') {
+      const r2 = await continuarCalificacion(env, colegio, persona, tel, texto, pendiente);
+      if (r2) return responder(r2.texto);
     } else if (pendiente.accion === 'fuente') {
       fuente = pendiente.datos.texto; origenFuente = pendiente.datos.origenFuente || 'foto';
       await borrarPendiente(env, colegio, tel);

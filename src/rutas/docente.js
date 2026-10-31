@@ -8,9 +8,7 @@ import { generarExamen, generarSesion } from '../ia/docente.js';
 import { guardarDocumento, PARTES, enlace } from '../ia/documentos.js';
 import { hayIA, SinIA, leerImagen } from '../ia/modelo.js';
 import { leerWeb, leerPdf } from '../ia/fuentes.js';
-import { leerExamenCalificado, interpretarLectura, nivelDe } from '../lib/calificar.js';
-import { buscarAlumnos } from '../whatsapp/comun.js';
-import { cursoOficial, bimestreActual } from '../whatsapp/roles/registro.js';
+import { leerExamenCalificado, armarResultados, prepararResultados } from '../lib/calificar.js';
 import { tiene } from '../lib/permisos.js';
 
 const puedeCrear = (u) => ['direccion', 'profesor'].includes(u.rol);
@@ -106,11 +104,24 @@ export function rutasDocente(r) {
     const total = JSON.parse(d.contenido).preguntas?.length || 0;
     let lectura;
     try { lectura = await leerExamenCalificado(env, img, total); } catch { throw falla(422, 'No pude leer esta foto. Toma la foto de frente, con buena luz y que se vea la nota.'); }
-    const calculo = interpretarLectura(lectura, total);
-    let candidatos = [];
-    if (lectura.alumno) candidatos = (await buscarAlumnos(env, { id: ctx.colegioId }, { usuario: ctx.usuario }, lectura.alumno, 5)).map((a) => a.id);
     ctx.waitUntil(auditar(env, ctx, 'calificar_examen_foto', 'documento', d.id));
-    return json({ alumno_leido: lectura.alumno || '', alumno_id: candidatos.length === 1 ? candidatos[0] : null, candidatos, ...(calculo || {}), leido: !!calculo });
+    const { alumno, pagina, nota_escrita, es_nota_final, correctas, total: totalHoja, preguntas_incorrectas } = lectura;
+    return json({ alumno, pagina, nota_escrita, es_nota_final, correctas, total: totalHoja, preguntas_incorrectas });
+  });
+
+  // Junta las hojas leídas (en el orden en que se subieron), reconoce a cada alumno y calcula nota, % y nivel
+  r.post('/api/documentos/:id/agrupar', async (ctx, env) => {
+    exigir(ctx);
+    if (!puedeCrear(ctx.usuario)) throw falla(403, 'Solo profesores y dirección');
+    const d = await env.DB.prepare("SELECT id, contenido FROM documentos WHERE id = ? AND colegio_id = ? AND tipo = 'examen'").bind(entero(ctx.params.id), ctx.colegioId).first();
+    if (!d) throw falla(404, 'Examen no encontrado');
+    const datos = await cuerpo(ctx.request, 120_000);
+    const lecturas = (Array.isArray(datos.lecturas) ? datos.lecturas : []).slice(0, 160).map((l) => ({
+      alumno: String(l?.alumno || '').slice(0, 80), pagina: Number(l?.pagina) || null, nota_escrita: l?.nota_escrita == null ? null : String(l.nota_escrita).slice(0, 20),
+      es_nota_final: !!l?.es_nota_final, correctas: Number(l?.correctas) >= 0 ? Number(l.correctas) : null, total: Number(l?.total) > 0 ? Number(l.total) : null,
+      preguntas_incorrectas: Array.isArray(l?.preguntas_incorrectas) ? l.preguntas_incorrectas.slice(0, 60) : null,
+    }));
+    return json(await armarResultados(env, ctx.colegioId, ctx.usuario, JSON.parse(d.contenido).preguntas?.length || 0, lecturas));
   });
 
   // Guarda los resultados que el profesor revisó (nota, porcentaje y nivel de cada alumno)
@@ -120,43 +131,12 @@ export function rutasDocente(r) {
     const d = await env.DB.prepare("SELECT id, curso, contenido FROM documentos WHERE id = ? AND colegio_id = ? AND tipo = 'examen'").bind(entero(ctx.params.id), ctx.colegioId).first();
     if (!d) throw falla(404, 'Examen no encontrado');
     const datos = await cuerpo(ctx.request, 60_000);
-    const total = JSON.parse(d.contenido).preguntas?.length || 0;
     const filas = (Array.isArray(datos.filas) ? datos.filas : []).slice(0, 80);
     if (!filas.length) throw falla(400, 'No hay resultados para guardar');
-    const al = alcanceAlumnos(ctx.usuario);
-    const ids = [...new Set(filas.map((f) => entero(f.alumno_id)))].filter(Boolean);
-    const { results: validos } = await env.DB.prepare(
-      `SELECT a.id FROM alumnos a WHERE a.colegio_id = ? AND a.id IN (${ids.map(() => '?').join(',') || 'NULL'}) AND ${al.sql}`,
-    ).bind(ctx.colegioId, ...ids, ...al.params).all();
-    const permitidos = new Set(validos.map((v) => v.id));
-    const sentencias = [];
-    const guardados = [];
-    const bimestre = bimestreActual();
-    const curso = datos.guardar_nota ? await cursoOficial(env, { id: ctx.colegioId }, d.curso || 'General') : null;
-    for (const f of filas) {
-      const id = entero(f.alumno_id);
-      const pct = Number(f.porcentaje);
-      if (!permitidos.has(id) || !Number.isFinite(pct) || pct < 0 || pct > 100) continue;
-      const falladas = Array.isArray(f.falladas) ? [...new Set(f.falladas.map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= total))] : null;
-      const porcentaje = Math.round(pct * 10) / 10;
-      const puntaje = Math.round((porcentaje / 100) * 200) / 10;
-      sentencias.push(env.DB.prepare(
-        `INSERT INTO examen_resultados (documento_id, alumno_id, falladas, puntaje, registrado_por, porcentaje, nivel, sin_detalle, origen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'foto')
-         ON CONFLICT(documento_id, alumno_id) DO UPDATE SET falladas = excluded.falladas, puntaje = excluded.puntaje, registrado_por = excluded.registrado_por,
-           porcentaje = excluded.porcentaje, nivel = excluded.nivel, sin_detalle = excluded.sin_detalle, origen = excluded.origen`,
-      ).bind(d.id, id, JSON.stringify(falladas || []), puntaje, ctx.usuario.id, porcentaje, nivelDe(porcentaje), falladas ? 0 : 1));
-      if (curso) {
-        sentencias.push(env.DB.prepare(
-          `INSERT INTO notas (colegio_id, alumno_id, curso, bimestre, nota) VALUES (?, ?, ?, ?, ?)
-           ON CONFLICT(alumno_id, curso, bimestre) DO UPDATE SET nota = excluded.nota`,
-        ).bind(ctx.colegioId, id, curso, bimestre, String(Math.round(puntaje))));
-      }
-      guardados.push(id);
-    }
-    if (!guardados.length) throw falla(400, 'No se pudo guardar: revisa que cada examen tenga un alumno elegido');
-    sentencias.push(sentenciaAuditoria(env, ctx, 'registrar_resultados_examen', 'documento', d.id, { alumnos: guardados.length }));
-    await env.DB.batch(sentencias);
-    return json({ guardados: guardados.length, nota_bimestre: curso ? { curso, bimestre } : null });
+    const p = await prepararResultados(env, ctx.colegioId, ctx.usuario, d, filas, { guardarNota: !!datos.guardar_nota });
+    if (!p.guardados) throw falla(400, 'No se pudo guardar: revisa que cada examen tenga un alumno elegido');
+    await env.DB.batch([...p.sentencias, sentenciaAuditoria(env, ctx, 'registrar_resultados_examen', 'documento', d.id, { alumnos: p.guardados })]);
+    return json({ guardados: p.guardados, nota_bimestre: p.nota_bimestre });
   });
 
   // Crear desde la web (lo mismo que por WhatsApp)
