@@ -1,7 +1,8 @@
 // Empaqueta public/ en src/estaticos.generado.js para que el Worker sirva la app web.
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
-const TIPOS = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
+const TIPOS = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+const BINARIOS = { '.png': 'image/png' };
 const CABECERAS = {
   'Content-Security-Policy': "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; frame-src 'self' blob:; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; img-src 'self' data: blob:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
   'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
@@ -12,6 +13,7 @@ const archivos = {};
   for (const n of readdirSync(dir).sort()) {
     const p = join(dir, n), r = base + '/' + n;
     if (statSync(p).isDirectory()) recorrer(p, r);
+    else if (BINARIOS[extname(n)]) archivos[r] = { tipo: BINARIOS[extname(n)], b64: readFileSync(p).toString('base64') };
     else if (TIPOS[extname(n)]) archivos[r] = { tipo: TIPOS[extname(n)], texto: readFileSync(p, 'utf8') };
   }
 })('public');

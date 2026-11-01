@@ -4,7 +4,8 @@ import { ARCHIVOS, CABECERAS } from './estaticos.generado.js';
 
 const servir = (ruta) => {
   const a = ARCHIVOS[ruta] || ARCHIVOS['/index.html']; // rutas de la app (SPA) devuelven index.html
-  return new Response(a.texto, {
+  const cuerpo = a.b64 ? Uint8Array.from(atob(a.b64), (c) => c.charCodeAt(0)) : a.texto;
+  return new Response(cuerpo, {
     headers: { 'content-type': a.tipo, 'cache-control': ruta.endsWith('.html') || !ARCHIVOS[ruta] ? 'no-cache' : 'public, max-age=300', ...CABECERAS },
   });
 };
