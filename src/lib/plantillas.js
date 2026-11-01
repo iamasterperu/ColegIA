@@ -1,7 +1,7 @@
 // Plantillas del colegio: el mismo diseño (colores, nombre y firma del colegio) para tarjetas de
 // cumpleaños, comunicados, constancias, diplomas y reportes. Solo cambian los datos.
 // Cada pieza se ve como página web (/c/<token>) y se descarga en PDF (/c/<token>/pdf).
-import { DocumentoPdf, ANCHO, ALTO } from './pdf.js';
+import { DocumentoPdf, ANCHO, ALTO, anchoTexto } from './pdf.js';
 import { tokenAleatorio } from './cripto.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -58,7 +58,16 @@ export function pdfPieza(pieza, colegio) {
   const c = pieza.contenido;
   const doc = new DocumentoPdf({ titulo: pieza.titulo, pie: colegio.nombre, color: p });
   if (pieza.tipo === 'diploma') return pdfDiploma(c, colegio, p, s).bytes();
-  doc.banda(colegio.nombre, c.fecha ? fechaLarga(c.fecha) : '', s);
+  doc.banda(colegio.nombre, [colegio.direccion, colegio.telefono].filter(Boolean).join('  ·  '), s);
+  if (pieza.tipo === 'constancia') {
+    doc.espacio(30);
+    doc.texto(ANCHO / 2, doc.y, c.titulo || 'CONSTANCIA', 22, true, p, true);
+    doc.rect(ANCHO / 2 - 60, doc.y - 12, 120, 3, s);
+    doc.espacio(40);
+    for (const l of String(c.texto || '').split('\n')) doc.parrafo(l.trim() === '' ? ' ' : l, { tam: 13, interlineado: 1.7 });
+    if (c.firma) { doc.espacio(40); for (const l of String(c.firma).split('\n')) doc.parrafo(l.trim() === '' ? ' ' : l, { tam: 12, negrita: l.trim() === 'Dirección' }); }
+    return doc.bytes();
+  }
   if (pieza.tipo === 'cumple') {
     doc.titular(`¡Feliz cumpleaños${c.nombre ? `, ${c.nombre}` : ''}!`, 26);
     doc.espacio(10);
@@ -80,20 +89,41 @@ const hexRgb = (hex) => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => (v / 255).toFixed(3)).join(' ');
 };
 
+// Texto centrado con ajuste de línea; devuelve la y donde terminó
+function centrado(doc, texto, y, { tam = 12, negrita = false, color = '#333333', ancho = 380, interlineado = 1.5 } = {}) {
+  let linea = '';
+  const volcar = () => { doc.texto(ANCHO / 2, y, linea, tam, negrita, color, true); y -= tam * interlineado; linea = ''; };
+  for (const palabra of String(texto || '').split(' ')) {
+    const prueba = linea ? `${linea} ${palabra}` : palabra;
+    if (anchoTexto(prueba, tam, negrita) > ancho && linea) { volcar(); linea = palabra; } else linea = prueba;
+  }
+  if (linea) volcar();
+  return y;
+}
+
 function pdfDiploma(c, colegio, p, s) {
   const doc = new DocumentoPdf({ titulo: 'Diploma', pie: '', color: p });
-  doc.rect(30, 30, ANCHO - 60, ALTO - 60, s);
-  doc.rect(38, 38, ANCHO - 76, ALTO - 76, '#ffffff');
-  doc.rect(38, ALTO - 220, ANCHO - 76, 182, p);
-  doc.texto(ANCHO / 2, ALTO - 110, colegio.nombre, 24, true, '#ffffff', true);
-  doc.texto(ANCHO / 2, ALTO - 160, 'DIPLOMA DE RECONOCIMIENTO', 16, false, '#ffffff', true);
-  doc.texto(ANCHO / 2, ALTO - 300, 'Se otorga el presente a', 13, false, '#555555', true);
-  doc.texto(ANCHO / 2, ALTO - 360, c.nombre, 28, true, p, true);
-  doc.y = ALTO - 410;
-  doc.parrafo(c.motivo || '', { tam: 14 });
-  doc.texto(ANCHO / 2, 190, c.fecha ? fechaLarga(c.fecha) : '', 12, false, '#555555', true);
-  doc.texto(ANCHO / 2, 130, '______________________________', 12, false, '#000000', true);
-  doc.texto(ANCHO / 2, 114, c.firma || 'Dirección', 11, false, '#555555', true);
+  // Marco: borde secundario grueso, hoja blanca, filete fino del color principal
+  doc.rect(24, 24, ANCHO - 48, ALTO - 48, s);
+  doc.rect(34, 34, ANCHO - 68, ALTO - 68, '#ffffff');
+  doc.rect(44, 44, ANCHO - 88, 1.5, p); doc.rect(44, ALTO - 45.5, ANCHO - 88, 1.5, p);
+  doc.rect(44, 44, 1.5, ALTO - 88, p); doc.rect(ANCHO - 45.5, 44, 1.5, ALTO - 88, p);
+  // Cabecera con el nombre del colegio
+  doc.rect(44, ALTO - 235, ANCHO - 88, 190, p);
+  doc.rect(44, ALTO - 241, ANCHO - 88, 6, s);
+  let y = centrado(doc, colegio.nombre.toUpperCase(), ALTO - 110, { tam: 22, negrita: true, color: '#ffffff', ancho: 420, interlineado: 1.25 });
+  doc.texto(ANCHO / 2, y - 14, '— ✦ —'.replace('✦', '*'), 14, true, s, true);
+  doc.texto(ANCHO / 2, ALTO - 205, 'DIPLOMA DE RECONOCIMIENTO', 17, true, '#ffffff', true);
+  // Cuerpo
+  doc.texto(ANCHO / 2, ALTO - 300, 'Se otorga el presente diploma a', 13, false, '#666666', true);
+  y = centrado(doc, c.nombre, ALTO - 360, { tam: 30, negrita: true, color: p, ancho: 440, interlineado: 1.2 });
+  doc.rect(ANCHO / 2 - 150, y + 6, 300, 2, s);
+  centrado(doc, c.motivo || '', y - 28, { tam: 14, color: '#333333', ancho: 380, interlineado: 1.55 });
+  // Fecha y firma
+  doc.texto(ANCHO / 2, 190, c.fecha ? fechaLarga(c.fecha) : '', 12, false, '#666666', true);
+  doc.rect(ANCHO / 2 - 110, 140, 220, 1, '#444444');
+  doc.texto(ANCHO / 2, 124, c.firma || 'Dirección', 12, true, '#444444', true);
+  doc.texto(ANCHO / 2, 108, colegio.nombre, 9, false, '#888888', true);
   return doc;
 }
 

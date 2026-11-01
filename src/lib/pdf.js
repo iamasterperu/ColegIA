@@ -20,7 +20,7 @@ function winAnsi(texto) {
 
 const escapar = (s) => s.replace(/[\\()]/g, (c) => `\\${c}`);
 
-function anchoTexto(texto, tam, negrita) {
+export function anchoTexto(texto, tam, negrita) {
   let w = 0;
   for (const c of texto) {
     if ('il.,;:\'|!jtfI'.includes(c)) w += 0.28;
