@@ -3,10 +3,12 @@
 import { json, cuerpo, falla, entero, hoyLima } from '../lib/http.js';
 import { exigir } from '../lib/sesion.js';
 import { tiene, alcanceAlumnos } from '../lib/permisos.js';
-import { sentenciaAuditoria } from '../lib/auditoria.js';
+import { sentenciaAuditoria, auditar } from '../lib/auditoria.js';
 import { sentenciasAsistencia, sentenciaLista, resumenAsistenciaDia } from '../lib/asistencia.js';
 import { guardarConfig, configurado, emitirPago } from '../lib/nubefact.js';
 import { guardarPieza } from '../lib/plantillas.js';
+import { importarCumples, leerDni, estadoCumples, cargarIndice, reconocer, parseFecha } from '../lib/cumples.js';
+import { hayIA } from '../ia/modelo.js';
 import { decidirBorrador, cumpleHoy, construirReporte, enviarReporteMensual, nombreMes, examenesDelDia } from '../whatsapp/automatizacion.js';
 import { iniciarReinscripcion } from '../whatsapp/reinscripcion.js';
 import { procesarCola } from '../whatsapp/comun.js';
@@ -87,6 +89,35 @@ export function rutasAutomatizacion(r) {
     if (!res.meta.changes) throw falla(404, 'No encontrado');
     return json({ ok: true });
   });
+
+  // ---- Cumpleaños desde los registros: estado, Excel y foto del DNI ----
+  r.get('/api/cumpleanos/estado', async (ctx, env) => {
+    exigir(ctx, 'alumnos.editar');
+    return json(await estadoCumples(env, ctx.colegioId));
+  });
+  r.post('/api/cumpleanos/importar', async (ctx, env) => {
+    exigir(ctx, 'alumnos.editar');
+    const d = await cuerpo(ctx.request, 200_000);
+    const filas = Array.isArray(d.filas) ? d.filas.slice(0, 90) : [];
+    if (!filas.length) throw falla(400, 'No llegaron filas');
+    const { res, sentencias } = await importarCumples(env, ctx.colegioId, filas, { dry: !!d.vista_previa });
+    if (sentencias.length) await env.DB.batch([...sentencias, sentenciaAuditoria(env, ctx, 'importar_cumpleanos', null, null, { filas: filas.length, actualizados: res.actualizados, creados: res.creados })]);
+    return json(res);
+  });
+  // Lee la foto de un DNI y dice a quién corresponde. No guarda nada ni conserva la foto.
+  r.post('/api/cumpleanos/dni', async (ctx, env) => {
+    exigir(ctx, 'alumnos.editar');
+    if (!hayIA(env)) throw falla(503, 'La IA no está activada en este momento');
+    if (!(ctx.request.headers.get('content-type') || '').startsWith('image/')) throw falla(415, 'Sube una foto (JPG o PNG)');
+    if (Number(ctx.request.headers.get('content-length') || 0) > 6_000_000) throw falla(413, 'La foto es muy pesada');
+    const datos = await ctx.request.arrayBuffer();
+    let lectura;
+    try { lectura = await leerDni(env, { mime: ctx.request.headers.get('content-type').split(';')[0], datos }); } catch { throw falla(422, 'No pude leer ese DNI. Toma la foto de frente, con buena luz y sin reflejos.'); }
+    const { personas } = reconocer(await cargarIndice(env, ctx.colegioId), lectura);
+    ctx.waitUntil(auditar(env, ctx, 'leer_dni_cumpleanos'));
+    return json({ ...lectura, persona: personas.length ? personas.map((p) => p.nombre)[0] : null, tipos: personas.map((p) => p.tipo) });
+  });
+
   // Fecha de cumpleaños de un usuario del colegio o de un apoderado
   r.put('/api/cumpleanos', async (ctx, env) => {
     const d = await cuerpo(ctx.request, 500);
