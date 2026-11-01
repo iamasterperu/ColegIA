@@ -76,16 +76,16 @@ h2{{font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:0 0 10px;letter-spa
 footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}}
 :focus-visible{{outline:3px solid var(--amb);outline-offset:2px}}
 </style>
-<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#1e3a8a"><script type="module" src="/js/pwa.js"></script>
+<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#1e3a8a">
 </head>
 <body>
 <header class="hero">
   <div class="wrap">
-    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar?instalar=1" data-instalar>📲 Instalar app</a></div>
+    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar">Ingresar</a></div>
     <h1>El asistente de WhatsApp de tu colegio</h1>
     <p class="lead">Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
-    <div class="btns"><a class="btn i" href="/entrar?instalar=1" data-instalar>📲 Instalar ColegIA en mi celular</a><a class="btn p" href="/entrar">Entrar a la demo</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
-    <p class="note">En la pantalla de entrada toca <b>Dirección</b>. La demo usa colegios y datos ficticios.</p>
+    <div class="btns"><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
+    <p class="note">Elige tu colegio y tu puesto. Al ingresar te ofrecemos instalar la app en tu celular para entrar con un toque.</p>
   </div>
 </header>
 
@@ -127,7 +127,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 <section class="cta" id="contacto"><div class="wrap">
   <h2>Pruébalo con tu colegio</h2>
   <p class="sub" style="margin-inline:auto">Precio fijo mensual por colegio, según su tamaño. No se cobra por alumno.</p>
-  <div class="btns"><a class="btn p" href="/entrar" style="background:var(--navy);color:#fff">Entrar a la demo</a><a class="btn s" href="mailto:iamasterperu@gmail.com" style="border-color:var(--navy);color:var(--navy)">iamasterperu@gmail.com</a></div>
+  <div class="btns"><a class="btn p" href="/entrar" style="background:var(--navy);color:#fff">Ingresar a mi colegio</a><a class="btn s" href="mailto:iamasterperu@gmail.com" style="border-color:var(--navy);color:var(--navy)">iamasterperu@gmail.com</a></div>
   <p class="note" style="color:var(--muted);margin-inline:auto">IAMASTER · Chorrillos, Lima</p>
 </div></section>
 <footer>ColegIA es una creación de <a href="https://iamaster.iamasterperu.workers.dev/">IAMASTER</a>.</footer>

@@ -23,7 +23,7 @@ export async function mostrar(vista) {
         <td>${u.nombre}</td><td>${u.email}</td><td>${u.telefono ? `+${u.telefono}` : '—'}</td><td title="${DESCRIPCION[u.rol]}">${ROL_NOMBRE[u.rol]}</td><td>${u.secciones || ''}</td>
         <td>${u.ultimo_acceso ? fecha(u.ultimo_acceso, true) : 'Nunca'}</td>
         <td>${u.activo ? crudo('<span class="etiqueta etiqueta-ok">Activo</span>') : crudo('<span class="etiqueta">Inactivo</span>')}</td>
-        <td><div class="acciones" style="flex-wrap:nowrap"><button class="btn btn-chico" data-editar="${u.id}">Editar</button>${u.telefono && u.rol !== 'padre' && u.activo ? crudo(html`<button class="btn btn-chico" data-bienvenida="${u.id}">Bienvenida</button>`) : ''}</div></td></tr>`)}</tbody></table></div>
+        <td><div class="acciones" style="flex-wrap:nowrap"><button class="btn btn-chico" data-editar="${u.id}">Editar</button>${u.rol !== 'padre' ? crudo(html`<button class="btn btn-chico" data-enlace="${u.id}">Enlace de contraseña</button>`) : ''}${u.telefono && u.rol !== 'padre' && u.activo ? crudo(html`<button class="btn btn-chico" data-bienvenida="${u.id}">Bienvenida</button>`) : ''}</div></td></tr>`)}</tbody></table></div>
     <section class="tarjeta" style="margin-top:16px"><h2>Qué ve cada rol</h2>
       <dl class="datos">${Object.entries(DESCRIPCION).map(([k, t]) => html`<div><dt>${ROL_NOMBRE[k]}</dt><dd>${t}</dd></div>`)}</dl></section>`;
 
@@ -32,7 +32,7 @@ export async function mostrar(vista) {
       <form class="form" id="f-u">
         <div class="form-fila"><label>Nombre<input name="nombre" required></label><label>Correo<input type="email" name="email" required></label></div>
         <div class="form-fila"><label>Rol<select name="rol">${Object.entries(ROL_NOMBRE).filter(([k]) => k !== 'sistema').map(([k, t]) => html`<option value="${k}">${t}</option>`)}</select></label>
-          <label>Contraseña temporal<input name="clave" required minlength="8" placeholder="mín. 8, letras y números"></label></div>
+          <label>Contraseña (opcional: si la dejas vacía, se genera un enlace para que la persona cree la suya)<input name="clave" minlength="8" placeholder="mín. 8, letras y números"></label></div>
         <label class="extra-cel">Celular para WhatsApp<input name="telefono" inputmode="tel" placeholder="987 654 321"></label>
         <label class="extra" data-rol="profesor">Secciones (separadas por coma)<input name="secciones" placeholder="3° Primaria A, 3° Primaria B"></label>
         <label class="extra" data-rol="padre">DNI del apoderado registrado<input name="apoderado_dni" inputmode="numeric"></label>
@@ -50,9 +50,12 @@ export async function mostrar(vista) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       await conBoton($('.btn-primario', form), async () => {
-        await api.post('/api/usuarios', Object.fromEntries(new FormData(form)));
-        aviso('Usuario creado. Entrégale su contraseña temporal en persona.');
+        const datos = Object.fromEntries(new FormData(form));
+        if (!datos.clave) delete datos.clave;
+        const r = await api.post('/api/usuarios', datos);
         cerrar();
+        if (r.enlace) mostrarEnlace(r.enlace);
+        else aviso('Usuario creado. Entrégale su contraseña temporal en persona.');
         mostrar(vista);
       });
     });
@@ -81,6 +84,11 @@ export async function mostrar(vista) {
       });
       return;
     }
+    const en = e.target.closest('[data-enlace]');
+    if (en) {
+      if (window.confirm('Se cerrará la sesión de esa persona y se generará un enlace para que cree una contraseña nueva. ¿Continuar?')) await conBoton(en, async () => mostrarEnlace((await api.post(`/api/usuarios/${en.dataset.enlace}/enlace`)).enlace));
+      return;
+    }
     const b = e.target.closest('[data-editar]');
     if (!b) return;
     const u = usuarios.find((x) => x.id === Number(b.dataset.editar));
@@ -107,4 +115,12 @@ export async function mostrar(vista) {
       });
     });
   };
+}
+
+function mostrarEnlace(enlace) {
+  const { raiz } = modal(html`<h2>Enlace para crear la contraseña</h2>
+    <p>Envíaselo solo a esa persona (por WhatsApp, por ejemplo). Sirve una vez y vence en 7 días.</p>
+    <p class="pequeno" style="word-break:break-all;background:#f4f5f8;padding:10px;border-radius:8px">${enlace}</p>
+    <button class="btn btn-primario" id="copiar-enlace">Copiar enlace</button>`, { ancho: 520 });
+  $('#copiar-enlace', raiz).addEventListener('click', async (e) => { try { await navigator.clipboard.writeText(enlace); e.target.textContent = '¡Copiado!'; } catch { e.target.textContent = 'Copia el texto a mano'; } });
 }

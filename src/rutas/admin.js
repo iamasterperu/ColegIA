@@ -5,6 +5,9 @@ import { auditar, sentenciaAuditoria } from '../lib/auditoria.js';
 import { hashClave, validarClaveNueva } from '../lib/claves.js';
 import { cifrar, tokenAleatorio } from '../lib/cripto.js';
 import { normalizarTelefono } from '../lib/texto.js';
+import { CLAVE_PENDIENTE, crearInvitacion } from '../lib/invitaciones.js';
+
+const enlaceInv = (env, token) => `${env.URL_BASE || 'https://colegia.iamasterperu.workers.dev'}/entrar?inv=${token}`;
 import { cargarConexion, probarConexion } from '../whatsapp/envio.js';
 
 const COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -28,7 +31,9 @@ export function rutasAdmin(r) {
     const nombre = String(d.nombre || '').trim().slice(0, 80);
     if (!ROLES[d.rol]) throw falla(400, 'Rol inválido');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !nombre) throw falla(400, 'Nombre y correo válidos son obligatorios');
-    const error = validarClaveNueva(d.clave);
+    // Sin contraseña: la persona recibe un enlace para crear la suya
+    const conEnlace = !d.clave && d.rol !== 'padre';
+    const error = conEnlace ? null : validarClaveNueva(d.clave);
     if (error) throw falla(400, error);
     let apoderadoId = null;
     if (d.rol === 'padre') {
@@ -41,7 +46,7 @@ export function rutasAdmin(r) {
     if (d.telefono && !telefono) throw falla(400, 'Celular inválido');
     const fila = await env.DB.prepare(
       'INSERT INTO usuarios (colegio_id, nombre, email, rol, clave, apoderado_id, telefono) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id',
-    ).bind(ctx.colegioId, nombre, email, d.rol, await hashClave(d.clave), apoderadoId, telefono).first().catch((e) => {
+    ).bind(ctx.colegioId, nombre, email, d.rol, conEnlace ? CLAVE_PENDIENTE : await hashClave(d.clave), apoderadoId, telefono).first().catch((e) => {
       if (String(e).includes('UNIQUE')) throw falla(409, 'Ya existe un usuario con ese correo');
       throw e;
     });
@@ -50,7 +55,16 @@ export function rutasAdmin(r) {
       ...secciones.map((s) => env.DB.prepare('INSERT OR IGNORE INTO profesor_secciones (usuario_id, grado, seccion) VALUES (?, ?, ?)').bind(fila.id, s.grado, s.seccion)),
       sentenciaAuditoria(env, ctx, 'crear_usuario', 'usuario', fila.id, { rol: d.rol }),
     ]);
-    return json({ id: fila.id }, 201);
+    return json({ id: fila.id, ...(conEnlace ? { enlace: enlaceInv(env, await crearInvitacion(env, 'usuario', fila.id)) } : {}) }, 201);
+  });
+
+  r.post('/api/usuarios/:id/enlace', async (ctx, env) => {
+    exigir(ctx, 'usuarios.gestionar');
+    const id = entero(ctx.params.id);
+    const u = await env.DB.prepare("SELECT id FROM usuarios WHERE id = ? AND colegio_id = ? AND rol != 'padre'").bind(id, ctx.colegioId).first();
+    if (!u) throw falla(404, 'Usuario no encontrado');
+    await env.DB.batch([env.DB.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id), sentenciaAuditoria(env, ctx, 'enlace_contrasena', 'usuario', id)]);
+    return json({ enlace: enlaceInv(env, await crearInvitacion(env, 'usuario', id)) });
   });
 
   r.put('/api/usuarios/:id', async (ctx, env) => {

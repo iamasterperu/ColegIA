@@ -84,11 +84,13 @@ export function aplicarMarca(c) {
 async function pantallaIngreso(mensaje) {
   const app = $('#app');
   const params = new URLSearchParams(location.search);
-  let slug = (params.get('c') || leer('colegia:colegio') || 'sanmartin').toLowerCase();
+  if (params.get('inv')) return pantallaInvitacion(params.get('inv'));
+  let slug = (params.get('c') || leer('colegia:colegio') || '').toLowerCase();
+  let lista = [];
+  try { lista = (await api.get('/api/publico/colegios')).colegios; } catch { lista = []; }
+  if (!lista.some((c) => c.slug === slug)) slug = '';
   let colegio = null;
-  try { colegio = await api.get(`/api/publico/colegio/${encodeURIComponent(slug)}`); } catch { colegio = null; }
-  let demos = [];
-  try { demos = await api.get('/api/publico/colegios-demo'); } catch { /* sin demos */ }
+  if (slug) { try { colegio = await api.get(`/api/publico/colegio/${encodeURIComponent(slug)}`); } catch { colegio = null; } }
   if (colegio) aplicarMarca(colegio);
 
   app.innerHTML = html`
@@ -100,48 +102,70 @@ async function pantallaIngreso(mensaje) {
         </div>
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
         <form id="form-ingreso" class="form">
-          <label>Código del colegio<input name="colegio" value="${slug}" autocomplete="organization" required></label>
-          <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Director(a)</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option></select></label>
+          <label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>
+          <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option></select></label>
           <label>Correo<input name="email" type="email" autocomplete="username" required></label>
           <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
+          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="recordar" checked> <span>Mantener mi sesión en este celular (entrar con un toque)</span></label>
           <button class="btn btn-primario" type="submit">Ingresar</button>
         </form>
-        ${colegio?.usuarios_demo?.length ? html`
-          <div class="demo-caja">
-            <p><strong>Colegio de demostración.</strong> Entra con un rol (contraseña <code>demo1234</code>):</p>
-            <div class="chips">${colegio.usuarios_demo.map((u) => html`<button class="chip" data-demo="${u.email}">${ROL_NOMBRE[u.rol]}</button>`)}</div>
-            ${demos.length > 1 ? html`<p class="pequeno">Otros colegios demo: ${demos.filter((d) => d.slug !== slug).map((d) => html`<a href="?c=${d.slug}">${d.nombre}</a> `)}</p>` : ''}
-          </div>` : ''}
+        <p class="pequeno">¿Aún no tienes contraseña? Usa el enlace que te envió tu colegio para crearla.</p>
         <p class="pequeno"><a href="/privacidad?c=${slug}">Aviso de privacidad</a> · Tus datos están protegidos según la Ley 29733.</p>
       </section>
     </main>`;
 
   const form = $('#form-ingreso');
-  const entrar = async (datos) => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(form));
+    datos.recordar = form.recordar.checked;
     const boton = form.querySelector('button');
     boton.disabled = true;
     try {
       await api.post('/api/login', datos);
       guardar('colegia:colegio', datos.colegio.trim().toLowerCase());
-      if (params.has('c')) history.replaceState(null, '', '/');
+      if (params.has('c') || params.has('instalar')) history.replaceState(null, '', '/entrar');
       await iniciar();
-    } catch (e) {
-      aviso(e.message, 'error');
+    } catch (er) {
+      aviso(er.message, 'error');
     } finally {
       boton.disabled = false;
     }
-  };
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    entrar(Object.fromEntries(new FormData(form)));
   });
   form.colegio.addEventListener('change', () => {
     const nuevo = form.colegio.value.trim().toLowerCase();
-    if (nuevo && nuevo !== slug) { slug = nuevo; history.replaceState(null, '', `?c=${encodeURIComponent(nuevo)}`); pantallaIngreso(); }
+    if (nuevo && nuevo !== slug) { guardar('colegia:colegio', nuevo); history.replaceState(null, '', `/entrar?c=${encodeURIComponent(nuevo)}`); pantallaIngreso(); }
   });
-  app.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-demo]');
-    if (b) entrar({ colegio: slug, email: b.dataset.demo, clave: 'demo1234' });
+}
+
+// Enlace de un solo uso que recibe cada persona para crear su propia contraseña
+async function pantallaInvitacion(token) {
+  const app = $('#app');
+  let inv;
+  try { inv = await api.get(`/api/publico/invitacion/${encodeURIComponent(token)}`); } catch (e) {
+    history.replaceState(null, '', '/entrar');
+    return pantallaIngreso(e.message);
+  }
+  const puesto = { direccion: 'Dirección', secretaria: 'Secretaría', profesor: 'Profesor(a)', contabilidad: 'Contabilidad' }[inv.rol] || inv.rol;
+  app.innerHTML = html`
+    <main class="ingreso"><section class="ingreso-caja">
+      <div class="ingreso-marca"><div class="logo-letra">${inv.colegio[0]}</div><div><p class="sobretitulo">ColegIA</p><h1>${inv.colegio}</h1></div></div>
+      <p>Hola, <strong>${inv.nombre}</strong> (${puesto}). Crea tu contraseña para entrar.</p>
+      <form id="form-inv" class="form">
+        <label>Contraseña<input name="clave" type="password" autocomplete="new-password" minlength="8" required placeholder="mín. 8, letras y números"></label>
+        <label>Repite la contraseña<input name="otra" type="password" autocomplete="new-password" minlength="8" required></label>
+        <button class="btn btn-primario" type="submit">Guardar contraseña</button>
+      </form></section></main>`;
+  $('#form-inv').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    if (f.clave !== f.otra) return aviso('Las contraseñas no son iguales', 'error');
+    try {
+      await api.post(`/api/publico/invitacion/${encodeURIComponent(token)}`, { clave: f.clave });
+      guardar('colegia:colegio', inv.slug);
+      history.replaceState(null, '', `/entrar?c=${inv.slug}`);
+      await pantallaIngreso('✅ Listo. Ahora entra con tu correo y tu nueva contraseña.');
+    } catch (er) { aviso(er.message, 'error'); }
   });
 }
 
@@ -216,6 +240,7 @@ async function iniciar() {
   armarMarco();
   window.onhashchange = enrutar;
   enrutar();
+  import('./pwa.js').then((m) => m.ofrecerInstalacion()).catch(() => {});
 }
 
 document.addEventListener('click', (e) => { if (e.target.closest('[data-imprimir]')) print(); });

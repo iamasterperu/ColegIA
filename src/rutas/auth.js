@@ -2,7 +2,7 @@ import { json, cuerpo, falla, cookieSesion, ip, leerCookie } from '../lib/http.j
 import { verificarClave, hashClave, validarClaveNueva } from '../lib/claves.js';
 import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { PERMISOS, ROLES } from '../lib/permisos.js';
-import { DURACION_SESION, exigir } from '../lib/sesion.js';
+import { DURACION_SESION, DURACION_RECORDADA, exigir } from '../lib/sesion.js';
 import { auditar, sentenciaAuditoria } from '../lib/auditoria.js';
 import { FINALIDADES, textoFinalidad } from '../lib/consentimiento.js';
 
@@ -44,7 +44,7 @@ export function rutasAuth(r) {
   });
 
   r.post('/api/login', async (ctx, env) => {
-    const { colegio, email, clave, rol } = await cuerpo(ctx.request, 4000);
+    const { colegio, email, clave, rol, recordar } = await cuerpo(ctx.request, 4000);
     if (!colegio || !email || !clave) throw falla(400, 'Completa colegio, correo y contraseña');
     const slug = String(colegio).trim().toLowerCase();
     const correo = String(email).trim().toLowerCase();
@@ -55,7 +55,7 @@ export function rutasAuth(r) {
       throw falla(429, 'Demasiados intentos. Espera 15 minutos o pide a dirección que restablezca tu contraseña.');
     }
     const u = await env.DB.prepare(
-      `SELECT u.*, c.slug, c.portal_padres FROM usuarios u JOIN colegios c ON c.id = u.colegio_id
+      `SELECT u.*, c.slug, c.portal_padres, c.suspendido FROM usuarios u JOIN colegios c ON c.id = u.colegio_id
         WHERE c.slug = ? AND u.email = ? AND u.activo = 1`,
     ).bind(slug, correo).first();
 
@@ -73,11 +73,13 @@ export function rutasAuth(r) {
       throw falla(401, 'Correo, puesto o contraseña incorrectos');
     }
 
+    if (u.suspendido) throw falla(403, 'El servicio de este colegio está suspendido. Comunícate con la dirección.');
     if (u.rol === 'padre' && !u.portal_padres) {
       throw falla(403, 'Los padres de este colegio se atienden por WhatsApp: escribe al número del colegio.');
     }
     const token = tokenAleatorio();
-    const expira = new Date(Date.now() + DURACION_SESION * 1000).toISOString().replace('T', ' ').slice(0, 19);
+    const duracion = recordar ? DURACION_RECORDADA : DURACION_SESION;
+    const expira = new Date(Date.now() + duracion * 1000).toISOString().replace('T', ' ').slice(0, 19);
     await env.DB.batch([
       env.DB.prepare('INSERT INTO sesiones (id, usuario_id, colegio_id, expira, ip) VALUES (?, ?, ?, ?, ?)')
         .bind(await sha256(token), u.id, u.colegio_id, expira, ip(ctx.request)),
@@ -86,7 +88,7 @@ export function rutasAuth(r) {
       env.DB.prepare("DELETE FROM sesiones WHERE usuario_id = ? AND expira < datetime('now')").bind(u.id),
       sentenciaAuditoria(env, { request: ctx.request, colegioId: u.colegio_id, usuario: u }, 'login'),
     ]);
-    return json({ ok: true }, 200, { 'set-cookie': cookieSesion(token, DURACION_SESION) });
+    return json({ ok: true }, 200, { 'set-cookie': cookieSesion(token, duracion) });
   });
 
   r.post('/api/logout', async (ctx, env) => {
