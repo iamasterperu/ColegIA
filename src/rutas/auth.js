@@ -44,7 +44,7 @@ export function rutasAuth(r) {
   });
 
   r.post('/api/login', async (ctx, env) => {
-    const { colegio, email, clave } = await cuerpo(ctx.request, 4000);
+    const { colegio, email, clave, rol } = await cuerpo(ctx.request, 4000);
     if (!colegio || !email || !clave) throw falla(400, 'Completa colegio, correo y contraseña');
     const slug = String(colegio).trim().toLowerCase();
     const correo = String(email).trim().toLowerCase();
@@ -60,7 +60,9 @@ export function rutasAuth(r) {
     ).bind(slug, correo).first();
 
     const valida = await verificarClave(String(clave), u?.clave ?? CLAVE_RELLENO);
-    if (!u || !valida) {
+    // Si la persona eligió su puesto, tiene que coincidir con el de su cuenta
+    const puestoOk = !rol || u?.rol === rol;
+    if (!u || !valida || !puestoOk) {
       const fallos = (intento?.fallos || 0) + 1;
       const bloqueo = fallos >= MAX_FALLOS ? new Date(Date.now() + 15 * 60_000).toISOString() : null;
       await env.DB.prepare(
@@ -68,7 +70,7 @@ export function rutasAuth(r) {
          ON CONFLICT(clave) DO UPDATE SET fallos = excluded.fallos, bloqueado_hasta = excluded.bloqueado_hasta`,
       ).bind(llave, bloqueo ? 0 : fallos, bloqueo).run();
       if (u) await auditar(env, { request: ctx.request, colegioId: u.colegio_id, usuario: u }, 'login_fallido');
-      throw falla(401, 'Correo o contraseña incorrectos');
+      throw falla(401, 'Correo, puesto o contraseña incorrectos');
     }
 
     if (u.rol === 'padre' && !u.portal_padres) {

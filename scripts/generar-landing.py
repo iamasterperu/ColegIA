@@ -45,6 +45,8 @@ h1{{font-size:clamp(30px,5.2vw,52px);line-height:1.08;margin:48px 0 14px;max-wid
 .btn{{display:inline-block;padding:13px 22px;border-radius:10px;font-weight:700;text-decoration:none;border:2px solid transparent}}
 .btn.p{{background:var(--mint);color:#06281f}}
 .btn.s{{border-color:#5d7399;color:#fff}}
+.btn.i{{background:#f59e0b;color:#1b2333;font-size:1.1rem;padding:16px 26px;box-shadow:0 6px 22px rgba(245,158,11,.45)}}
+.top .inst{{margin-left:auto;background:#f59e0b;color:#1b2333;font-weight:800;border-radius:999px;padding:9px 16px;text-decoration:none;font-size:.92rem}}
 .note{{font-size:13.5px;color:#9FB0CC;margin-top:14px;max-width:38em}}
 section{{padding-block:56px}}
 section.alt{{background:var(--bg)}}
@@ -74,14 +76,15 @@ h2{{font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:0 0 10px;letter-spa
 footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}}
 :focus-visible{{outline:3px solid var(--amb);outline-offset:2px}}
 </style>
+<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><meta name="theme-color" content="#1e3a8a"><script type="module" src="/js/pwa.js"></script>
 </head>
 <body>
 <header class="hero">
   <div class="wrap">
-    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a></div>
+    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar?instalar=1" data-instalar>📲 Instalar app</a></div>
     <h1>El asistente de WhatsApp de tu colegio</h1>
     <p class="lead">Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
-    <div class="btns"><a class="btn p" href="/entrar">Entrar a la demo</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
+    <div class="btns"><a class="btn i" href="/entrar?instalar=1" data-instalar>📲 Instalar ColegIA en mi celular</a><a class="btn p" href="/entrar">Entrar a la demo</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
     <p class="note">En la pantalla de entrada toca <b>Dirección</b>. La demo usa colegios y datos ficticios.</p>
   </div>
 </header>

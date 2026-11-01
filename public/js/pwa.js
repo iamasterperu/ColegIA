@@ -12,9 +12,18 @@ function banner(texto, boton, alAceptar) {
   document.body.append(d);
 }
 let evento = null;
+const hayBoton = () => !!document.querySelector('[data-instalar]');
+// Botón «Instalar» de la portada: instala (si el navegador deja) y siempre termina en el ingreso
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest?.('[data-instalar]');
+  if (!a) return;
+  e.preventDefault();
+  if (evento) { try { evento.prompt(); await evento.userChoice; } catch { /* sin respuesta */ } evento = null; }
+  location.href = '/entrar?instalar=1';
+});
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault(); evento = e;
-  banner('Instala ColegIA en tu celular para entrar con un toque.', 'Instalar', async () => { evento.prompt(); await evento.userChoice.catch(() => {}); evento = null; });
+  if (!hayBoton()) banner('Instala ColegIA en tu celular para entrar con un toque.', 'Instalar', async () => { evento.prompt(); await evento.userChoice.catch(() => {}); evento = null; });
 });
 // iPhone no avisa solo: se explica el paso a paso
-if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !instalada()) setTimeout(() => banner('Para instalar ColegIA: toca Compartir y luego «Añadir a pantalla de inicio».'), 4000);
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !instalada() && !hayBoton()) setTimeout(() => banner('Para instalar ColegIA: toca Compartir y luego «Añadir a pantalla de inicio».'), 4000);

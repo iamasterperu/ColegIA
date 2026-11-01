@@ -101,6 +101,7 @@ async function pantallaIngreso(mensaje) {
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
         <form id="form-ingreso" class="form">
           <label>Código del colegio<input name="colegio" value="${slug}" autocomplete="organization" required></label>
+          <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Director(a)</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option></select></label>
           <label>Correo<input name="email" type="email" autocomplete="username" required></label>
           <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
           <button class="btn btn-primario" type="submit">Ingresar</button>
