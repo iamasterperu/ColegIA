@@ -86,9 +86,19 @@ async function panel() {
       };
     };
   });
-  // Instalar el panel en el celular
-  let ev0; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); ev0 = e; const c = document.getElementById('inst'); if (c) { c.innerHTML = '<div class="card"><button id="ins">📲 Instalar este panel en mi celular</button></div>'; document.getElementById('ins').onclick = () => ev0.prompt(); } });
+  pintarInstalar();
 }
+
+// Instalar este panel como una app aparte (con su propio ícono), solo en tu celular
+let evInstalar = null;
+const instalada = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function pintarInstalar() {
+  const c = document.getElementById('inst');
+  if (!c || instalada()) return;
+  if (evInstalar) { c.innerHTML = '<div class="card"><button id="ins">📲 Instalar mi panel como app</button></div>'; document.getElementById('ins').onclick = async () => { evInstalar.prompt(); await evInstalar.userChoice.catch(() => {}); evInstalar = null; c.innerHTML = ''; }; }
+  else c.innerHTML = '<div class="card peq">Para instalar este panel como app: en Android toca ⋮ de Chrome y «Instalar app»; en iPhone, Compartir y «Añadir a pantalla de inicio». Ábrelo en Chrome o Safari, no dentro de otra app.</div>';
+}
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); evInstalar = e; pintarInstalar(); });
 
 const token = new URLSearchParams(location.search).get('activar');
 if (token) pantallaActivar(token); else panel();
