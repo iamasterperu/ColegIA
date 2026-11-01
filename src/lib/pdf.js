@@ -66,6 +66,12 @@ export class DocumentoPdf {
     this.ops.push(`${hexARgb(color)} rg ${x.toFixed(1)} ${y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)} re f 0 g`);
   }
 
+  // Círculo de color (hex) con curvas de Bézier
+  circulo(cx, cy, r, color) {
+    const k = r * 0.5523, f = (n) => n.toFixed(1);
+    this.ops.push(`${hexARgb(color)} rg ${f(cx + r)} ${f(cy)} m ${f(cx + r)} ${f(cy + k)} ${f(cx + k)} ${f(cy + r)} ${f(cx)} ${f(cy + r)} c ${f(cx - k)} ${f(cy + r)} ${f(cx - r)} ${f(cy + k)} ${f(cx - r)} ${f(cy)} c ${f(cx - r)} ${f(cy - k)} ${f(cx - k)} ${f(cy - r)} ${f(cx)} ${f(cy - r)} c ${f(cx + k)} ${f(cy - r)} ${f(cx + r)} ${f(cy - k)} ${f(cx + r)} ${f(cy)} c f 0 g`);
+  }
+
   // Texto en cualquier lugar de la página (color hex o blanco)
   texto(x, y, texto, tam = 11, negrita = false, color = '#000000', centrado = false) {
     const w = centrado ? anchoTexto(winAnsi(texto), tam, negrita) : 0;

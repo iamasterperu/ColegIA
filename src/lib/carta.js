@@ -29,7 +29,7 @@ export async function responderCarta(env, slug, parte) {
   // Solo se publica si el colegio activó la atención a familias nuevas (o es la demostración)
   if (!colegio.es_demo && info.admision_activa !== '1') return new Response('No encontrado', { status: 404 });
   const pieza = { tipo: 'comunicado', titulo: 'Carta de presentación', token: `carta/${slug}`, contenido: {
-    titulo: 'Carta de presentación', fecha: hoyLima(), secciones: seccionesCarta(colegio, info), firma: `La Dirección · ${colegio.nombre}`,
+    titulo: 'Carta de presentación', diseno: 'carta', fecha: hoyLima(), secciones: seccionesCarta(colegio, info), firma: `La Dirección · ${colegio.nombre}`,
   } };
   const r = respuestaPieza(pieza, colegio, parte === 'pdf' ? 'pdf' : null);
   if (parte !== 'pdf') return new Response((await r.text()).replace(`/c/carta/${slug}/pdf`, `/carta/${slug}/pdf`), r);

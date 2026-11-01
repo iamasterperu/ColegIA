@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { html, crudo, $, $$, fecha, cargando, vacio, aviso, conBoton, soles } from '../ui.js';
 import { leerHoja, mapearColumnas, fechaIso } from '../lib/xlsx.js';
 import { reducirImagen } from './docente.js';
+import { seccionDiplomas, activarDiplomas } from './diplomas.js';
 
 const TOGGLES = [
   ['cumple_auto', 'Saludos de cumpleaños a alumnos (por el WhatsApp de sus padres), padres, profesores, auxiliares y personal'],
@@ -40,6 +41,7 @@ export async function mostrar(vista) {
         <p class="pequeno">Sube la foto de cada DNI (padres, personal o alumnos). ColegIA lee el nombre y la fecha de nacimiento, ve a quién corresponde y tú confirmas. La foto no se guarda.</p>
         <label class="btn" style="cursor:pointer">📷 Subir fotos de DNI<input type="file" id="cu-dni" accept="image/*" multiple style="position:absolute;opacity:0;width:1px;height:1px"></label>
         <div id="cu-salida" style="margin-top:10px"></div></section>
+      ${seccionDiplomas()}
       <section class="tarjeta"><h2>Cumpleaños del personal</h2>
         <p class="pequeno">Cada persona también puede escribir al WhatsApp del colegio: <em>mi cumpleaños 12 de mayo</em>. El año no hace falta.</p>
         <div class="tabla-caja"><table><thead><tr><th>Nombre</th><th>Cargo</th><th>Cumpleaños</th></tr></thead><tbody>
@@ -92,6 +94,7 @@ export async function mostrar(vista) {
       await conBoton($('.btn-primario', e.target), async () => { await api.post('/api/personal', Object.fromEntries(new FormData(e.target))); aviso('Añadido'); await cargar(); });
     });
     activarCumples(vista);
+    activarDiplomas(vista).catch((err) => { $('#dip-cont', vista).textContent = err.message; });
     $('#rein', vista).addEventListener('click', (e) => conBoton(e.target, async () => {
       if (!window.confirm('¿Enviar la pregunta de reinscripción a las familias que autorizaron WhatsApp?')) return;
       const r = await api.post('/api/reinscripcion/iniciar'); aviso(`Enviado a ${r.enviados} familias`); await cargar();
