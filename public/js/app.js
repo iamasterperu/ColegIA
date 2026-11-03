@@ -18,10 +18,13 @@ const ICONOS = {
   docente: 'M12 3 2 8l10 5 10-5-10-5Zm-6 7.5V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.5',
   alerta: 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
 };
+// Ícono del chat del colegio: globo de conversación verde con birrete
+export const ICONO_CHAT = '<svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true"><path d="M32 6C17.6 6 6 16.7 6 30c0 5.3 1.9 10.2 5.1 14.2L8 57l13-4.2c3.3 1.4 6.9 2.2 11 2.2 14.4 0 26-10.7 26-24S46.4 6 32 6Z" fill="#fff"/><path d="M18 28l14-7 14 7-14 7-14-7Zm6 4v6c0 2 4 4 8 4s8-2 8-4v-6" fill="none" stroke="#00a884" stroke-width="3" stroke-linejoin="round"/></svg>';
+const ICONO_TAB_CHAT = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.7-5.2A8.5 8.5 0 1 1 21 12Z"/></svg>';
 export const icono = (n) =>
   `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONOS[n]}"/></svg>`;
 
-const MENU = [
+export const MENU = [
   { ruta: 'chat', texto: 'Chat del colegio', icono: 'whatsapp' },
   { ruta: 'inicio', texto: 'Buscar alumno', icono: 'buscar', ver: (s) => s.usuario.rol !== 'padre' },
   { ruta: 'inicio', texto: 'Mis hijos', icono: 'familia', ver: (s) => s.usuario.rol === 'padre' },
@@ -45,6 +48,7 @@ const MENU = [
 
 const VISTAS = {
   chat: () => import('./vistas/chat.js'),
+  mipanel: () => import('./vistas/mipanel.js'),
   inicio: () => import('./vistas/inicio.js'),
   alumno: () => import('./vistas/ficha.js'),
   panel: () => import('./vistas/panel.js'),
@@ -99,43 +103,62 @@ async function pantallaIngreso(mensaje) {
     <main class="ingreso">
       <section class="ingreso-caja">
         <div class="ingreso-marca">
-          ${colegio?.logo ? html`<img src="${colegio.logo}" alt="" class="logo-grande">` : html`<div class="logo-letra">${(colegio?.nombre || 'C')[0]}</div>`}
-          <div><p class="sobretitulo">ColegIA</p><h1>${colegio?.nombre || 'Ingresa a tu colegio'}</h1></div>
+          ${colegio?.logo ? html`<img src="${colegio.logo}" alt="" class="logo-grande">` : html`<div class="logo-chat-wa">${crudo(ICONO_CHAT)}</div>`}
+          <div><p class="sobretitulo">ColegIA · el chat de tu colegio</p><h1>${colegio?.nombre || 'Ingresa a tu colegio'}</h1></div>
         </div>
+        <div id="zona-instalar"></div>
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
-        <form id="form-ingreso" class="form">
+        <form id="form-dni" class="form">
           <label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>
+          <label>Tu DNI<input name="dni" inputmode="numeric" autocomplete="off" maxlength="12" required placeholder="8 dígitos"></label>
+          <label>Tu celular registrado en el colegio<input name="celular" type="tel" inputmode="tel" autocomplete="tel" required placeholder="9XXXXXXXX"></label>
+          <button class="btn btn-primario" type="submit">Entrar al chat</button>
+          <p class="pequeno">Solo la primera vez. Después abres la app y entras con un toque. El sistema reconoce si eres padre o madre, profesor(a), dirección, secretaría o contabilidad.</p>
+        </form>
+        <button class="btn btn-fantasma" id="familia-nueva" type="button">¿Familia nueva? Pregunta por el colegio</button>
+        <details class="otro-ingreso"><summary>Entrar con correo y contraseña</summary>
+        <form id="form-ingreso" class="form">
           <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option><option value="padre">Padre / Apoderado</option></select></label>
           <label>Correo<input name="email" type="email" autocomplete="username" required></label>
           <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
-          <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="recordar" checked> <span>Mantener mi sesión en este celular (entrar con un toque)</span></label>
           <button class="btn btn-primario" type="submit">Ingresar</button>
-        </form>
-        <p class="pequeno">¿Aún no tienes contraseña? Usa el enlace que te envió tu colegio para crearla.</p>
+        </form></details>
         <p class="pequeno"><a href="/privacidad?c=${slug}">Aviso de privacidad</a> · Tus datos están protegidos según la Ley 29733.</p>
       </section>
     </main>`;
+  import('./pwa.js').then((m) => m.botonInstalar($('#zona-instalar'))).catch(() => {});
 
-  const form = $('#form-ingreso');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(form));
-    datos.recordar = form.recordar.checked;
-    const boton = form.querySelector('button');
+  const formDni = $('#form-dni');
+  const elegido = () => formDni.colegio.value.trim().toLowerCase();
+  const ir = async (url, datos, boton) => {
     boton.disabled = true;
     try {
-      await api.post('/api/login', datos);
+      await api.post(url, datos);
       guardar('colegia:colegio', datos.colegio.trim().toLowerCase());
       if (params.has('c') || params.has('instalar')) history.replaceState(null, '', '/entrar');
       await iniciar();
-    } catch (er) {
-      aviso(er.message, 'error');
-    } finally {
-      boton.disabled = false;
-    }
+    } catch (er) { aviso(er.message, 'error'); } finally { boton.disabled = false; }
+  };
+  formDni.addEventListener('submit', (e) => {
+    e.preventDefault();
+    ir('/api/ingreso-dni', Object.fromEntries(new FormData(formDni)), formDni.querySelector('button'));
   });
-  form.colegio.addEventListener('change', () => {
-    const nuevo = form.colegio.value.trim().toLowerCase();
+  $('#familia-nueva').addEventListener('click', () => {
+    const c = elegido();
+    if (!c) return aviso('Primero elige el colegio', 'error');
+    location.href = `/admision/${encodeURIComponent(c)}`;
+  });
+  const form = $('#form-ingreso');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(form));
+    datos.colegio = elegido();
+    if (!datos.colegio) return aviso('Elige tu colegio', 'error');
+    datos.recordar = true;
+    ir('/api/login', datos, form.querySelector('button'));
+  });
+  formDni.colegio.addEventListener('change', () => {
+    const nuevo = elegido();
     if (nuevo && nuevo !== slug) { guardar('colegia:colegio', nuevo); history.replaceState(null, '', `/entrar?c=${encodeURIComponent(nuevo)}`); pantallaIngreso(); }
   });
 }
@@ -185,6 +208,7 @@ function armarMarco() {
           ${items.map((m) => html`<a href="#/${m.ruta}" data-ruta="${m.ruta}">${crudo(icono(m.icono))}<span>${m.texto}</span>${m.ruta === 'chat' ? crudo('<b class="insignia" id="ins-chat" hidden></b>') : ''}</a>`)}
         </nav>
         <div class="lateral-pie">
+          <div id="instalar-menu"></div>
           <div class="usuario"><strong>${usuario.nombre}</strong><span>${usuario.rol_nombre}</span></div>
           <button class="btn btn-fantasma" id="salir">Cerrar sesión</button>
         </div>
@@ -197,6 +221,10 @@ function armarMarco() {
           ${puede('whatsapp.ver') && colegio.wa_modo === 'cloud' ? html`<span class="etiqueta ${colegio.wa_modo === 'cloud' ? 'etiqueta-ok' : ''}">WhatsApp: ${colegio.wa_modo === 'cloud' ? 'conectado' : 'simulado'}</span>` : ''}
         </header>
         <main id="vista" tabindex="-1"></main>
+        <nav class="tabs" aria-label="Chat y panel">
+          <a href="#/chat" data-tab="chat">${crudo(ICONO_TAB_CHAT)}<span>Chat</span><b class="insignia" id="ins-tab" hidden></b></a>
+          <a href="#/mipanel" data-tab="mipanel">${crudo(icono('panel'))}<span>Mi panel</span></a>
+        </nav>
       </div>
     </div>`;
   $('#salir').addEventListener('click', async () => {
@@ -206,12 +234,13 @@ function armarMarco() {
   });
   $('#abrir-menu').addEventListener('click', () => $('#lateral').classList.toggle('abierto'));
   iniciarInsignia();
+  import('./pwa.js').then((m) => m.botonInstalar($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu' })).catch(() => {});
 }
 
 // Contador de mensajes sin leer del chat (como en WhatsApp): en el menú, en el título y en el ícono de la app
 let temporizadorInsignia = null;
 function pintarInsignia(n) {
-  for (const id of ['ins-chat', 'ins-menu']) {
+  for (const id of ['ins-chat', 'ins-menu', 'ins-tab']) {
     const b = document.getElementById(id);
     if (b) { b.textContent = n > 99 ? '99+' : String(n); b.hidden = n < 1; }
   }
@@ -232,19 +261,21 @@ function iniciarInsignia() {
 
 let rutaActual = null;
 async function enrutar() {
-  const [nombre = (['padre', 'profesor'].includes(sesion.usuario?.rol) ? 'chat' : 'inicio'), ...resto] = location.hash.replace(/^#\/?/, '').split('/');
+  const [nombre0, ...resto] = location.hash.replace(/^#\/?/, '').split('/');
+  const nombre = nombre0 || 'chat';
   const cargador = VISTAS[nombre] || VISTAS.inicio;
   rutaActual = location.hash;
   const activa = !VISTAS[nombre] || nombre === 'alumno' ? 'inicio' : nombre;
   document.querySelectorAll('.lateral nav a').forEach((a) => a.classList.toggle('activo', a.dataset.ruta === activa));
   $('#lateral')?.classList.remove('abierto');
+  document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('activo', a.dataset.tab === (nombre === 'chat' ? 'chat' : 'mipanel')));
   // Elemento nuevo en cada navegación: así no se acumulan eventos de la vista anterior
   const anterior = $('#vista');
   const vista = anterior.cloneNode(false);
   vista.classList.toggle('vista-chat', nombre === 'chat');
   anterior.replaceWith(vista);
   const item = MENU.find((m) => m.ruta === nombre);
-  $('#barra-titulo').textContent = nombre === 'alumno' ? 'Ficha 360 del alumno' : item?.texto || '';
+  $('#barra-titulo').textContent = nombre === 'alumno' ? 'Ficha 360 del alumno' : nombre === 'mipanel' ? 'Mi panel' : item?.texto || '';
   vista.innerHTML = '<div class="cargando"><span class="spinner"></span>Cargando…</div>';
   try {
     const modulo = await cargador();

@@ -131,7 +131,7 @@ export async function procesarEntrante(env, conexion, entrada) {
   // ---- Autorización del padre (Ley 29733) antes de dar datos ----
   if (persona.rol === 'padre') {
     const r = porReglas('padre', texto);
-    const hijos = await hijosDe(env, persona.apoderado.id);
+    const hijos = await hijosDe(env, persona.apoderado.id, persona.apoderado.hijoId);
     if (/^baja tutor/.test(t)) {
       await env.DB.batch(hijos.map((h) => env.DB.prepare(
         "INSERT INTO consentimientos (colegio_id, apoderado_id, alumno_id, finalidad, otorgado, version_texto, medio) VALUES (?, ?, ?, 'tutor_ia', 0, ?, 'whatsapp')",

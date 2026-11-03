@@ -5,6 +5,7 @@ import { json, cuerpo, falla, entero } from '../lib/http.js';
 import { exigir } from '../lib/sesion.js';
 import { procesarEntrante } from '../whatsapp/agente.js';
 import { lineaInterna } from '../lib/buzon.js';
+import { hijosDe } from '../whatsapp/roles/padre.js';
 
 const MAX_AUDIO = 700_000;
 const MAX_ARCHIVO = 1_500_000;
@@ -25,7 +26,7 @@ function aBase64(buf) {
 
 // La "línea" de cada persona dentro del chat: una línea interna propia de su cuenta. Así el chat
 // funciona sin celular registrado ni WhatsApp: la identidad es la sesión iniciada en la app.
-async function lineaDe(env, ctx, colegio) {
+async function lineaDe(env, ctx, colegio, hijoId = null) {
   const u = await env.DB.prepare(
     `SELECT u.id, u.nombre, u.rol, u.apoderado_id, ap.nombres, ap.apellidos
        FROM usuarios u LEFT JOIN apoderados ap ON ap.id = u.apoderado_id AND ap.colegio_id = u.colegio_id
@@ -38,7 +39,7 @@ async function lineaDe(env, ctx, colegio) {
     if (!u.apoderado_id) throw falla(400, 'Tu cuenta aún no está vinculada a un apoderado. Pide a secretaría que lo vincule.');
     persona = {
       rol: 'padre', nombre: String(u.nombres).split(' ')[0], telefono,
-      apoderado: { id: u.apoderado_id, nombres: u.nombres, apellidos: u.apellidos },
+      apoderado: { id: u.apoderado_id, nombres: u.nombres, apellidos: u.apellidos, hijoId },
       usuario: { id: null, colegio_id: colegio.id, nombre: `${u.nombres} ${u.apellidos}`, rol: 'padre', apoderado_id: u.apoderado_id },
     };
   } else {
@@ -50,11 +51,27 @@ async function lineaDe(env, ctx, colegio) {
   return { telefono, persona };
 }
 
+// Los textos del asistente nacieron para WhatsApp; dentro de la app se dicen "este chat"
+const adaptar = (t) => String(t || '')
+  .replace(/WhatsApp es un servicio de Meta Platforms, con servidores fuera del Perú/g, 'Este chat funciona con servidores fuera del Perú')
+  .replace(/(?:por|en|a|del|de) WhatsApp/g, (m) => m.replace('WhatsApp', 'este chat'))
+  .replace(/WhatsApp/g, 'este chat')
+  .replace(/este chat de este chat/g, 'este chat');
+const paraApp = (filas) => filas.map((m) => (m.sentido === 'saliente' ? { ...m, texto: adaptar(m.texto) } : m));
+
 const marcarLeido = (env, ctx, tel) => env.DB.prepare(
   'UPDATE usuarios SET chat_leido_id = COALESCE((SELECT MAX(id) FROM mensajes WHERE colegio_id = ? AND telefono = ?), chat_leido_id) WHERE id = ?',
 ).bind(ctx.colegioId, tel, ctx.usuario.id).run();
 
 export function rutasChat(r) {
+  // Hijos del apoderado (para elegir con cuál conversar cuando tiene más de uno)
+  r.get('/api/chat/hijos', async (ctx, env) => {
+    exigir(ctx);
+    const u = await env.DB.prepare('SELECT apoderado_id FROM usuarios WHERE id = ? AND colegio_id = ?').bind(ctx.usuario.id, ctx.colegioId).first();
+    if (ctx.usuario.rol !== 'padre' || !u?.apoderado_id) return json([]);
+    return json(await hijosDe(env, u.apoderado_id));
+  });
+
   // Contador de "sin leer" (como en WhatsApp): avisos y recordatorios que llegaron al chat
   r.get('/api/chat/no-leidos', async (ctx, env) => {
     exigir(ctx);
@@ -74,14 +91,19 @@ export function rutasChat(r) {
         WHERE colegio_id = ? AND telefono = ? AND id > ? ORDER BY id DESC LIMIT 80`,
     ).bind(ctx.colegioId, tel, despues).all();
     await marcarLeido(env, ctx, tel);
-    return json(results.reverse());
+    return json(paraApp(results.reverse()));
   });
 
   r.post('/api/chat', async (ctx, env) => {
     exigir(ctx);
     const d = await cuerpo(ctx.request, MAX_ARCHIVO * 1.4);
     const colegio = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
-    const { telefono, persona } = await lineaDe(env, ctx, colegio);
+    let hijoId = entero(d.hijo_id, 0) || null;
+    if (hijoId) {
+      const ap = await env.DB.prepare('SELECT apoderado_id FROM usuarios WHERE id = ?').bind(ctx.usuario.id).first();
+      if (!ap?.apoderado_id || !(await hijosDe(env, ap.apoderado_id, hijoId)).length) hijoId = null;
+    }
+    const { telefono, persona } = await lineaDe(env, ctx, colegio, hijoId);
     // Todo queda dentro de la app: los avisos a otras personas se guardan pero no salen a WhatsApp.
     const conexion = { colegio, modo: 'simulado', numerosPrueba: [] };
     let audio = null;
@@ -101,11 +123,13 @@ export function rutasChat(r) {
       throw falla(400, 'Escribe un mensaje');
     }
     let transcripcion = audio ? String(d.transcripcion || '').slice(0, 2000) || null : null;
+    if (audio && !transcripcion && !env.AI) throw falla(503, 'La nota de voz no está disponible ahora. Escribe tu mensaje.');
     if (audio && !transcripcion && env.AI) {
       try {
         const t = await env.AI.run('@cf/openai/whisper-large-v3-turbo', { audio: aBase64(audio.datos), language: 'es' });
         transcripcion = (t?.text || '').trim() || null;
-      } catch { /* queda por atender */ }
+      } catch { /* se avisa abajo */ }
+      if (!transcripcion) throw falla(422, 'No pude entender la nota de voz. Habla más cerca del celular y vuelve a intentarlo, o escribe tu mensaje.');
     }
     await procesarEntrante(env, conexion, {
       telefono, persona,
@@ -119,6 +143,6 @@ export function rutasChat(r) {
         WHERE colegio_id = ? AND telefono = ? AND id > ? ORDER BY id`,
     ).bind(ctx.colegioId, telefono, entero(d.despues, 0)).all();
     await marcarLeido(env, ctx, telefono);
-    return json({ mensajes: results });
+    return json({ mensajes: paraApp(results) });
   });
 }

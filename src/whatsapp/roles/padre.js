@@ -13,11 +13,13 @@ export const menuPadre = (persona, colegio) =>
   '6️⃣ Justificar una falta ("mañana Mateo no irá por cita médica")\n7️⃣ Hablar con secretaría\n8️⃣ Mis datos y autorizaciones\n9️⃣ Tutor IA para mi hijo\n\n' +
   '📸 ¿Ya pagaste? Mándame la foto del voucher de Yape o transferencia.\nEscribe *BAJA* si no deseas recibir mensajes.';
 
-export async function hijosDe(env, apoderadoId) {
-  return (await env.DB.prepare(
+export async function hijosDe(env, apoderadoId, hijoId = null) {
+  const todos = (await env.DB.prepare(
     `SELECT a.id, a.nombres, a.apellidos, a.grado, a.seccion FROM alumno_apoderado aa
        JOIN alumnos a ON a.id = aa.alumno_id WHERE aa.apoderado_id = ? AND a.estado = 'matriculado' ORDER BY a.id`,
   ).bind(apoderadoId).all()).results;
+  // En el chat de la app, el padre elige a cuál de sus hijos ver
+  return hijoId ? todos.filter((h) => h.id === hijoId) : todos;
 }
 
 export async function tieneConsentimiento(env, apoderadoId) {
@@ -218,7 +220,7 @@ const normalizarTexto = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036
 // contabilidad para que lo confirme con un "SI" por WhatsApp.
 export async function voucherPadre(env, colegio, persona, imagen, avisarContabilidad) {
   if (!hayIA(env)) return { texto: 'Recibimos tu foto 📸. Contabilidad la revisará.', porAtender: true };
-  const hijos = await hijosDe(env, persona.apoderado.id);
+  const hijos = await hijosDe(env, persona.apoderado.id, persona.apoderado.hijoId);
   let v;
   try {
     v = await leerImagen(env, imagen,
@@ -245,7 +247,7 @@ export async function voucherPadre(env, colegio, persona, imagen, avisarContabil
 
 /** Responde a un padre. Devuelve { texto, porAtender?, motivo? } */
 export async function responderPadre(env, colegio, persona, { intencion, consulta, texto, origen, avisarTutor }) {
-  const hijos = await hijosDe(env, persona.apoderado.id);
+  const hijos = await hijosDe(env, persona.apoderado.id, persona.apoderado.hijoId);
   if (!hijos.length) return { texto: 'No encontramos alumnos matriculados asociados a tu número. Comunícate con secretaría.', porAtender: true };
   if (/^solicitud\b/i.test(texto)) return { texto: await solicitudArco(env, colegio, persona, texto) };
   const registrar = (accion) => auditoria(env, colegio, persona, accion, 'alumno', hijos[0].id, { hijos: hijos.map((h) => h.id) }).run();

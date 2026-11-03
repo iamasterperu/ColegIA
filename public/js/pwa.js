@@ -40,7 +40,25 @@ export function ofrecerInstalacion() {
   if (instalada() || caja) return;
   if (Number(leer('colegia_instalar') || 0) > Date.now()) return;
   caja = document.createElement('div');
-  caja.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#1e3a8a;color:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 32px rgba(0,0,0,.35);font:14px/1.4 system-ui,sans-serif;max-width:560px;margin:0 auto';
+  caja.style.cssText = 'position:fixed;left:12px;right:12px;bottom:76px;z-index:40;background:#1e3a8a;color:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 32px rgba(0,0,0,.35);font:14px/1.4 system-ui,sans-serif;max-width:560px;margin:0 auto';
   document.body.append(caja);
   pintar();
+}
+
+// Botón «Instalar la app» siempre disponible (login, menú, portada): instala si el navegador lo permite;
+// si no, muestra los pasos para Android o iPhone. Se oculta cuando la app ya está instalada.
+export function botonInstalar(contenedor, { clase = 'btn-instalar' } = {}) {
+  if (!contenedor || instalada()) return null;
+  const caja2 = document.createElement('div');
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = clase; b.textContent = '📲 Instalar la app en mi celular';
+  const ayuda = document.createElement('p');
+  ayuda.className = 'instalar-ayuda'; ayuda.hidden = true;
+  b.onclick = async () => {
+    if (evento) { try { evento.prompt(); await evento.userChoice; } catch { /* cancelado */ } evento = null; return; }
+    ayuda.textContent = pasos(); ayuda.hidden = !ayuda.hidden;
+  };
+  caja2.append(b, ayuda);
+  contenedor.append(caja2);
+  return caja2;
 }

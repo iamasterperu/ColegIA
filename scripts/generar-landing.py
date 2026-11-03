@@ -45,6 +45,7 @@ h1{{font-size:clamp(30px,5.2vw,52px);line-height:1.08;margin:48px 0 14px;max-wid
 .btn{{display:inline-block;padding:13px 22px;border-radius:10px;font-weight:700;text-decoration:none;border:2px solid transparent}}
 .btn.p{{background:var(--mint);color:#06281f}}
 .btn.s{{border-color:#5d7399;color:#fff}}
+.btn.w{{background:#25d366;color:#052e16;font-size:1.1rem;padding:16px 26px;box-shadow:0 6px 22px rgba(37,211,102,.45)}}
 .btn.i{{background:#f59e0b;color:#1b2333;font-size:1.1rem;padding:16px 26px;box-shadow:0 6px 22px rgba(245,158,11,.45)}}
 .top .inst{{margin-left:auto;background:#f59e0b;color:#1b2333;font-weight:800;border-radius:999px;padding:9px 16px;text-decoration:none;font-size:.92rem}}
 .note{{font-size:13.5px;color:#9FB0CC;margin-top:14px;max-width:38em}}
@@ -81,11 +82,11 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 <body>
 <header class="hero">
   <div class="wrap">
-    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar">Ingresar</a></div>
+    <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar?instalar=1">📲 Instalar</a></div>
     <h1>El chat privado de tu colegio</h1>
     <p class="lead">Una app instalable en el celular, con su propio chat inteligente. Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
-    <div class="btns"><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
-    <p class="note">Elige tu colegio y tu puesto. Al ingresar te ofrecemos instalar la app en tu celular para entrar con un toque.</p>
+    <div class="btns"><a class="btn w" href="/entrar?instalar=1">📲 Instalar la app</a><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
+    <p class="note">Instálala en tu celular (Android o iPhone) y entra con tu DNI una sola vez: la app reconoce si eres padre, profesor, dirección, secretaría o contabilidad.</p>
   </div>
 </header>
 
