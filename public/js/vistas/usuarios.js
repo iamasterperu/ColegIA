@@ -5,7 +5,7 @@ import { html, crudo, $, fecha, cargando, aviso, conBoton, modal, ROL_NOMBRE } f
 const DESCRIPCION = {
   direccion: 'Todo el colegio: panel, ajustes, usuarios y registro de accesos.',
   contabilidad: 'Pagos, recordatorios y datos de contacto. No ve notas ni salud.',
-  secretaria: 'Alumnos, útiles, WhatsApp y consentimientos. Ve si hay deuda, no los montos.',
+  secretaria: 'Alumnos, útiles, chat y consentimientos. Ve si hay deuda, no los montos.',
   profesor: 'Solo los alumnos de sus secciones: notas, asistencia y alertas de salud.',
   padre: 'Solo sus hijos: ficha, pagos, útiles, autorizaciones y solicitudes ARCO.',
 };
@@ -16,9 +16,9 @@ export async function mostrar(vista) {
   vista.innerHTML = html`
     <div class="encabezado"><div><h1>Usuarios y roles</h1><p>Cada persona entra con su propio usuario: así el registro de accesos sabe quién vio qué.</p></div>
       <div class="acciones"><a class="btn" href="#/importar/personal">Importar personal (Excel)</a><button class="btn" id="bienvenida-personal">Enviar bienvenida al personal</button><button class="btn" id="bienvenida-padres">Enviar bienvenida a los padres</button><button class="btn btn-primario" id="nuevo">+ Nuevo usuario</button></div></div>
-    <p class="nota-legal" style="margin-bottom:12px">Con el celular registrado, cada persona usa el asistente de WhatsApp con el menú de su rol. "Bienvenida" le envía ese menú por WhatsApp. Los padres se identifican por el celular que figura como apoderado.</p>
+    <p class="nota-legal" style="margin-bottom:12px">Cada persona entra al chat del colegio con su DNI y su celular registrado, y ve el menú de su rol. Los padres se identifican por el celular que figura como apoderado.</p>
     <div class="tabla-caja"><table>
-      <thead><tr><th>Nombre</th><th>Correo</th><th>Celular (WhatsApp)</th><th>Rol</th><th>Secciones</th><th>Último ingreso</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Correo</th><th>Celular</th><th>Rol</th><th>Secciones</th><th>Último ingreso</th><th>Estado</th><th></th></tr></thead>
       <tbody>${usuarios.map((u) => html`<tr>
         <td>${u.nombre}</td><td>${u.email}</td><td>${u.telefono ? `+${u.telefono}` : '—'}</td><td title="${DESCRIPCION[u.rol]}">${ROL_NOMBRE[u.rol]}</td><td>${u.secciones || ''}</td>
         <td>${u.ultimo_acceso ? fecha(u.ultimo_acceso, true) : 'Nunca'}</td>
@@ -99,6 +99,7 @@ export async function mostrar(vista) {
         ${u.rol !== 'padre' ? crudo(html`<label>DNI<input name="dni" value="${u.dni || ''}" inputmode="numeric"></label><label>Celular<input name="telefono" value="${u.telefono || ''}" inputmode="tel"></label>`) : ''}
         ${u.rol === 'profesor' ? crudo(html`<label>Secciones<input name="secciones" value="${u.secciones || ''}"></label>`) : ''}
         <label>Nueva contraseña (opcional)<input name="clave" minlength="8" autocomplete="new-password"></label>
+        ${['direccion', 'secretaria', 'contabilidad'].includes(u.rol) ? crudo('<label class="check"><input type="checkbox" name="quitar_clave"> Olvidó su contraseña: quitarla para que cree una nueva al entrar</label>') : ''}
         <button class="btn btn-primario">Guardar</button>
       </form>`, { ancho: 480 });
     $('#f-e', raiz).addEventListener('submit', async (ev) => {
@@ -106,6 +107,7 @@ export async function mostrar(vista) {
       const f = ev.target;
       const datos = { activo: f.activo.checked };
       if (f.clave.value) datos.clave = f.clave.value;
+      if (f.quitar_clave?.checked) datos.quitar_clave = true;
       if (f.secciones) datos.secciones = f.secciones.value;
       if (f.telefono) datos.telefono = f.telefono.value;
       if (f.dni) datos.dni = f.dni.value;

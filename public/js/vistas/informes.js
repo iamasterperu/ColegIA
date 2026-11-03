@@ -1,4 +1,4 @@
-// Información que responde el asistente de WhatsApp y checklist de la demo de 30 días.
+// Información que responde el asistente del chat y checklist de la demo de 30 días.
 import { api } from '../api.js';
 import { html, crudo, $, $$, cargando, aviso, conBoton } from '../ui.js';
 
@@ -16,7 +16,7 @@ export async function mostrar(vista) {
         <button class="btn btn-primario">Guardar</button></form></section>
     <section class="tarjeta"><h2>Respuestas del asistente</h2>
       <form class="form" id="f-info">
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="adm-activa"> Atender por WhatsApp a familias que aún no están registradas (admisiones)</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="adm-activa"> Atender en el chat a familias que aún no están registradas (admisiones)</label>
         ${Object.entries(inf.claves).map(([k, t]) => html`<label>${t}<textarea name="${k}" rows="3">${inf.info[k] || ''}</textarea></label>`)}
         <h3>Preguntas frecuentes</h3><div id="faqs">${inf.faq.map(faqLinea)}</div>
         <p><button type="button" class="btn" id="mas-faq">Añadir pregunta</button></p>

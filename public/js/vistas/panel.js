@@ -107,7 +107,7 @@ export async function mostrar(vista) {
       <section class="tarjeta">
         <div class="tarjeta-titulo"><h2>Accesos a fichas (7 días)</h2><a class="btn btn-chico" href="#/auditoria">Registro</a></div>
         ${c.lecturas_fichas_7d.length ? crudo(html`<div class="barras-h">${c.lecturas_fichas_7d.map((l) => html`<div class="barra-h"><span>${ROL_NOMBRE[l.rol] || l.rol}</span><div class="riel"><div class="relleno" style="width:${Math.max(4, (l.n / Math.max(...c.lecturas_fichas_7d.map((x) => x.n))) * 100)}%"></div></div><span class="num">${l.n}</span></div>`)}</div>`) : crudo('<p class="pequeno">Nadie abrió fichas esta semana.</p>')}
-        <p class="pequeno" style="margin-top:10px">${d.alumnos.con_alergias} alumnos con alergias registradas · ${d.whatsapp.por_atender} chats de WhatsApp por atender</p>
+        <p class="pequeno" style="margin-top:10px">${d.alumnos.con_alergias} alumnos con alergias registradas · ${d.whatsapp.por_atender} chats por atender</p>
       </section>
       <section class="tarjeta">
         <div class="tarjeta-titulo"><h2>Actividad reciente</h2></div>

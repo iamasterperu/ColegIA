@@ -1,5 +1,5 @@
 // Asistente docente: exámenes (A/B, solucionario, rúbrica) y sesiones creadas por
-// WhatsApp o desde aquí, con el radar de temas débiles de cada examen.
+// el chat o desde aquí, con el radar de temas débiles de cada examen.
 import { api } from '../api.js';
 import { html, crudo, $, fecha, cargando, vacio, aviso, conBoton, pct } from '../ui.js';
 import { sesion } from '../app.js';
@@ -14,7 +14,7 @@ export async function mostrar(vista, [id]) {
   const puedeCrear = ['direccion', 'profesor'].includes(sesion.usuario.rol);
   vista.innerHTML = html`
     <div class="encabezado"><div><h1>Asistente docente</h1>
-      <p>Los profesores piden por WhatsApp (texto, audio o foto del libro) “examen de 20 preguntas de fracciones para 2°” y lo reciben en PDF con versión A, versión B, solucionario y rúbrica. Aquí se ve todo lo creado.</p></div></div>
+      <p>Los profesores piden en el chat (texto, audio o foto del libro) “examen de 20 preguntas de fracciones para 2°” y lo reciben en PDF con versión A, versión B, solucionario y rúbrica. Aquí se ve todo lo creado.</p></div></div>
     ${puedeCrear ? crudo(html`<section class="tarjeta"><h2>Crear desde la web</h2>
       <form class="form" id="f-doc"><div class="form-fila">
         <label style="grid-column: span 3">¿Qué necesitas?<input name="pedido" required minlength="8" placeholder="Examen de 10 preguntas sobre el sistema solar para 4° de primaria"></label>
@@ -36,7 +36,7 @@ export async function mostrar(vista, [id]) {
           <td>${d.id}</td><td>${TIPO[d.tipo]}</td><td><a href="#/docente/${d.id}">${d.titulo}</a><div class="pequeno">${d.curso || ''} ${d.grado || ''}</div></td>
           <td>${d.autor}</td><td>${fecha(d.creado_en, true)}</td><td class="num">${d.tipo === 'examen' ? d.calificados : '—'}</td>
           <td><div class="chips">${d.pdfs.map((p) => html`<a class="chip" href="${p.url}" target="_blank" rel="noopener">${p.nombre}</a>`)}</div></td></tr>`)}</tbody></table></div>`)
-        : vacio('Todavía no hay documentos. Pide uno por WhatsApp: "examen de 10 preguntas de fracciones para 2°".')}
+        : vacio('Todavía no hay documentos. Pide uno en el chat: "examen de 10 preguntas de fracciones para 2°".')}
     </section>`;
   const estado = $('#f-estado', vista);
   let fuente = null; // { texto, origen }
@@ -117,7 +117,7 @@ async function detalle(vista, id) {
         <div class="tabla-caja"><table><thead><tr><th>Alumno</th><th class="num">Nota (0-20)</th><th class="num">%</th><th>Cómo le fue</th><th>Preguntas falladas</th></tr></thead>
           <tbody>${r.alumnos.map((a) => html`<tr><td>${a.apellidos}, ${a.nombres}</td><td class="num">${a.puntaje}</td><td class="num">${a.porcentaje == null ? '—' : Math.round(a.porcentaje) + '%'}</td>
             <td>${NIVEL[a.nivel] ? crudo(html`<span class="etiqueta" style="${NIVEL[a.nivel][1]}">${NIVEL[a.nivel][0]}</span>`) : '—'}</td><td>${a.sin_detalle ? 'no se registró el detalle' : (a.falladas.join(', ') || '—')}</td></tr>`)}</tbody></table></div>`)
-        : crudo(html`<p class="pequeno">Para ver el radar, el profesor envía por WhatsApp: <code>resultados ${d.id}: Mateo Quispe 2 5 9; Ana Paz 1</code></p>`)}
+        : crudo(html`<p class="pequeno">Para ver el radar, el profesor envía en el chat: <code>resultados ${d.id}: Mateo Quispe 2 5 9; Ana Paz 1</code></p>`)}
     </section>`) : ''}
     ${d.tipo === 'examen' ? crudo(html`<section class="tarjeta"><h2>Preguntas (versión A)</h2>
       <ol>${c.preguntas.map((q) => html`<li style="margin-bottom:10px"><strong>${q.p}</strong> <span class="etiqueta">${q.tema}</span>

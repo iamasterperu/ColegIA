@@ -119,6 +119,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   <ul>
     <li>El piloto no usa listas de alumnos, datos de padres, notas, DNI ni claves.</li>
     <li>El chat es privado: cada persona entra con su cuenta y solo ve lo que su rol permite. No se necesita WhatsApp ni cuenta de Meta.</li>
+    <li>Dirección, secretaría y contabilidad pueden crear su propia contraseña: nadie se la entrega y, una vez creada, entran con DNI, celular y contraseña.</li>
     <li>Las familias autorizan el uso de sus datos y pueden retirarlo cuando quieran. WhatsApp queda como extra opcional.</li>
     <li>Cada consulta de datos personales queda registrada, y cada rol ve solo lo que necesita.</li>
     <li>Nunca se pide la clave SOL.</li>

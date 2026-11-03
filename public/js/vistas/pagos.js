@@ -1,4 +1,4 @@
-// Pagos (morosos, por vencer, pagados) y envío de recordatorios por WhatsApp.
+// Pagos (morosos, por vencer, pagados) y envío de recordatorios por el chat del colegio.
 import { api } from '../api.js';
 import { html, crudo, $, $$, soles, fecha, cargando, vacio, aviso, conBoton } from '../ui.js';
 import { puede } from '../app.js';
@@ -11,7 +11,7 @@ const PESTANAS = [
 export async function mostrar(vista, [pestana = 'vencidos']) {
   const visibles = PESTANAS.filter(([k]) => k !== 'recordatorios' || puede('recordatorios.enviar'));
   vista.innerHTML = html`
-    <div class="encabezado"><div><h1>Pagos y recordatorios</h1><p>Pensiones del año escolar y avisos de cobranza por WhatsApp.</p></div></div>
+    <div class="encabezado"><div><h1>Pagos y recordatorios</h1><p>Pensiones del año escolar y avisos de cobranza por el chat del colegio.</p></div></div>
     <div class="pestanas" role="tablist">${visibles.map(([k, t]) => html`<button role="tab" data-p="${k}" class="${k === pestana ? 'activo' : ''}">${t}</button>`)}</div>
     <div id="panel-pagos"></div>`;
   $('.pestanas', vista).addEventListener('click', (e) => {
@@ -66,7 +66,7 @@ async function recordatorios(caja, tipo = 'vencido') {
   const limite = new Date(Date.now() - d.dias_entre * 86400000).toISOString().replace('T', ' ').slice(0, 19);
   const enviable = (c) => c.telefono && c.consiente === 1 && !(c.ultimo_recordatorio && c.ultimo_recordatorio > limite);
   const motivo = (c) => (!c.telefono ? 'Sin celular' : c.consiente === 1 ? (enviable(c) ? '' : `Ya se envió (${fecha(c.ultimo_recordatorio)})`)
-    : c.consiente === 0 ? 'No autorizó WhatsApp' : 'Falta autorización');
+    : c.consiente === 0 ? 'No autorizó avisos' : 'Falta autorización');
   const nEnviables = d.cuotas.filter(enviable).length;
 
   caja.innerHTML = html`
@@ -92,9 +92,8 @@ async function recordatorios(caja, tipo = 'vencido') {
       <div>
         <section class="tarjeta"><h2>Cómo funciona</h2>
           <ul class="pequeno" style="padding-left:18px;margin:0">
-            <li>Solo se envía a apoderados que <strong>autorizaron WhatsApp</strong> (Ley 29733).</li>
+            <li>Solo se envía a apoderados que <strong>autorizaron los avisos</strong> (Ley 29733). Cada aviso llega al <strong>chat del colegio</strong> de la familia, con notificación en su celular.</li>
             <li>Máximo un recordatorio por cuota cada ${d.dias_entre} días.</li>
-            <li>Modo actual: <strong>${d.ajustes.wa_modo === 'cloud' ? 'WhatsApp real (Cloud API)' : 'simulado'}</strong>. ${d.ajustes.wa_modo === 'cloud' ? '' : crudo('Los mensajes aparecen en el <a href="#/whatsapp">chat de prueba</a>.')}</li>
             <li>Envío automático: <strong>${d.ajustes.recordatorio_auto ? 'activado' : 'desactivado'}</strong> (todos los días desde las 8 a. m.). ${puede('ajustes.editar') ? crudo('<a href="#/ajustes">Cambiar</a>') : ''}</li>
           </ul>
           ${d.cuotas[0] ? crudo(html`<p class="pequeno" style="margin-top:10px"><strong>Ejemplo del mensaje:</strong></p>
@@ -120,7 +119,7 @@ async function recordatorios(caja, tipo = 'vencido') {
       total.omitidos += r.sin_consentimiento + r.sin_telefono + r.recientes;
       barra.firstElementChild.style.width = `${Math.min(100, ((i + 40) / ids.length) * 100)}%`;
     }
-    aviso(`Listo: ${total.enviados} enviados por WhatsApp, ${total.simulados} simulados, ${total.errores} con error, ${total.omitidos} omitidos.`);
+    aviso(`Listo: ${total.enviados + total.simulados} enviados al chat de las familias, ${total.errores} con error, ${total.omitidos} omitidos.`);
     recordatorios(caja, tipo);
   }));
 }

@@ -7,7 +7,7 @@ import { reducirImagen } from './docente.js';
 import { seccionDiplomas, activarDiplomas } from './diplomas.js';
 
 const TOGGLES = [
-  ['cumple_auto', 'Saludos de cumpleaños a alumnos (por el WhatsApp de sus padres), padres, profesores, auxiliares y personal'],
+  ['cumple_auto', 'Saludos de cumpleaños a alumnos (en el chat de sus padres), padres, profesores, auxiliares y personal'],
   ['fiestas_auto', 'Comunicados por feriados y fechas especiales (Día de la Madre, del Padre, Fiestas Patrias…): llegan primero a dirección y secretaría para aprobarlos'],
   ['asistencia_reporte', 'Reporte diario de asistencia y exámenes a dirección (10 a. m., de lunes a viernes)'],
   ['reporte_auto', 'Reporte mensual con todo lo que se hizo en la app, a dirección y secretaría (último día del mes)'],
@@ -43,7 +43,7 @@ export async function mostrar(vista) {
         <div id="cu-salida" style="margin-top:10px"></div></section>
       ${seccionDiplomas()}
       <section class="tarjeta"><h2>Cumpleaños del personal</h2>
-        <p class="pequeno">Cada persona también puede escribir al WhatsApp del colegio: <em>mi cumpleaños 12 de mayo</em>. El año no hace falta.</p>
+        <p class="pequeno">Cada persona también puede escribir en el chat del colegio: <em>mi cumpleaños 12 de mayo</em>. El año no hace falta.</p>
         <div class="tabla-caja"><table><thead><tr><th>Nombre</th><th>Cargo</th><th>Cumpleaños</th></tr></thead><tbody>
         ${d.usuarios.map((u) => html`<tr><td>${u.nombre}</td><td>${u.rol}</td><td><input type="date" class="fu" data-tipo="usuario" data-id="${u.id}" value="${u.fecha_nacimiento || ''}"></td></tr>`)}
         ${d.personal.map((u) => html`<tr><td>${u.nombre}</td><td>${u.cargo || 'Personal'}</td><td><input type="date" class="fu" data-tipo="personal" data-id="${u.id}" value="${u.fecha_nacimiento || ''}"></td></tr>`)}
@@ -68,7 +68,7 @@ export async function mostrar(vista) {
           <label>Serie de facturas<input name="serie_factura" maxlength="4" placeholder="F001" value="${d.nubefact.serie_factura}"></label>
           <label>Tipo de operación (confírmalo con el contador del colegio)<select name="tipo_igv"><option value="9" ${d.nubefact.tipo_igv === 9 ? crudo('selected') : ''}>Inafecto</option><option value="8" ${d.nubefact.tipo_igv === 8 ? crudo('selected') : ''}>Exonerado</option><option value="1" ${d.nubefact.tipo_igv === 1 ? crudo('selected') : ''}>Gravado con IGV</option></select></label>
           <button class="btn btn-primario">Guardar</button></form>
-        <p class="pequeno">Para emitir: contabilidad escribe por WhatsApp <em>boleta Nombre del alumno</em> o <em>factura Nombre 20123456789 Razón Social</em> después de registrar el pago.</p>
+        <p class="pequeno">Para emitir: contabilidad escribe en el chat <em>boleta Nombre del alumno</em> o <em>factura Nombre 20123456789 Razón Social</em> después de registrar el pago.</p>
         ${d.comprobantes.length ? html`<div class="tabla-caja"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Número</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead><tbody>
           ${d.comprobantes.map((c) => html`<tr><td>${fecha(c.creado_en, true)}</td><td>${c.tipo}</td><td>${c.serie || ''}-${c.numero || ''}</td><td>${c.cliente_nombre || ''}</td><td>${soles(c.total_centimos)}</td><td>${c.estado === 'error' ? c.detalle : (c.enlace_pdf ? html`<a href="${c.enlace_pdf}" target="_blank" rel="noopener">${c.detalle || 'emitido'}</a>` : c.detalle)}</td></tr>`)}</tbody></table></div>` : ''}</section>` : ''}`;
 
@@ -96,7 +96,7 @@ export async function mostrar(vista) {
     activarCumples(vista);
     activarDiplomas(vista).catch((err) => { $('#dip-cont', vista).textContent = err.message; });
     $('#rein', vista).addEventListener('click', (e) => conBoton(e.target, async () => {
-      if (!window.confirm('¿Enviar la pregunta de reinscripción a las familias que autorizaron WhatsApp?')) return;
+      if (!window.confirm('¿Enviar la pregunta de reinscripción a las familias que autorizaron los avisos?')) return;
       const r = await api.post('/api/reinscripcion/iniciar'); aviso(`Enviado a ${r.enviados} familias`); await cargar();
     }));
     $('#rep', vista).addEventListener('click', (e) => conBoton(e.target, async () => { await api.post('/api/reportes/enviar', { mes: rep.mes }); aviso('Reporte en camino'); }));

@@ -5,9 +5,14 @@ import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { normalizarTelefono } from '../lib/texto.js';
 import { sentenciaAuditoria } from '../lib/auditoria.js';
 import { CLAVE_PENDIENTE } from '../lib/invitaciones.js';
+import { hashClave, verificarClave, validarClaveNueva } from '../lib/claves.js';
 
 const MAX_FALLOS = 5;
 const DURACION = 365 * 86400; // el celular queda registrado: entra con un toque durante un año
+// Dirección, secretaría y contabilidad ven datos sensibles: pueden crear su propia contraseña.
+// Quien la crea, desde entonces entra con DNI + celular + contraseña (el celular solo ya no basta).
+export const ROLES_CON_CLAVE = ['direccion', 'secretaria', 'contabilidad'];
+export const tieneClave = (u) => String(u?.clave || '').startsWith('pbkdf2$');
 const MENSAJE = 'No encontramos ese DNI y celular en el colegio. Revisa los datos o pide a secretaría que los registre.';
 
 export function rutasIngresoDni(r) {
@@ -24,7 +29,7 @@ export function rutasIngresoDni(r) {
     if (intentos.some((i) => i.bloqueado_hasta && i.bloqueado_hasta > new Date().toISOString())) {
       throw falla(429, 'Demasiados intentos. Espera 15 minutos o pide ayuda a secretaría.');
     }
-    const fallar = async () => {
+    const fallar = async (mensaje = MENSAJE) => {
       for (const k of [llave, llaveIp]) {
         const fallos = (intentos.find((i) => i.clave === k)?.fallos || 0) + 1;
         const limite = k === llave ? MAX_FALLOS : MAX_FALLOS * 4;
@@ -34,7 +39,7 @@ export function rutasIngresoDni(r) {
            ON CONFLICT(clave) DO UPDATE SET fallos = excluded.fallos, bloqueado_hasta = excluded.bloqueado_hasta`,
         ).bind(k, bloqueo ? 0 : fallos, bloqueo).run();
       }
-      throw falla(401, MENSAJE);
+      throw falla(401, mensaje);
     };
     if (!colegio) return fallar();
 
@@ -65,6 +70,19 @@ export function rutasIngresoDni(r) {
     if (u && puesto && u.rol !== puesto) u = null;
     if (!u) return fallar();
     if (colegio.suspendido) throw falla(403, 'El servicio de este colegio está suspendido. Comunícate con la dirección.');
+
+    // Contraseña del personal de dirección, secretaría y contabilidad
+    if (ROLES_CON_CLAVE.includes(u.rol)) {
+      if (tieneClave(u)) {
+        if (!d.clave) throw falla(401, 'Escribe tu contraseña para entrar.');
+        if (!(await verificarClave(String(d.clave), u.clave))) return fallar('Contraseña incorrecta. Si la olvidaste, pide a dirección que la restablezca.');
+      } else if (d.crear_clave) {
+        // Primera vez: la persona crea su propia contraseña (nadie se la entrega)
+        const error = validarClaveNueva(d.crear_clave);
+        if (error) throw falla(400, error);
+        await env.DB.prepare('UPDATE usuarios SET clave = ? WHERE id = ?').bind(await hashClave(d.crear_clave), u.id).run();
+      }
+    }
 
     const token = tokenAleatorio();
     const expira = new Date(Date.now() + DURACION * 1000).toISOString().replace('T', ' ').slice(0, 19);

@@ -99,7 +99,7 @@ export function rutasAuth(r) {
     const c = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
     const u = ctx.usuario;
     const yo = await env.DB.prepare(
-      `SELECT u.dni, u.telefono, u.email, ap.dni AS ap_dni, ap.telefono AS ap_telefono FROM usuarios u LEFT JOIN apoderados ap ON ap.id = u.apoderado_id WHERE u.id = ?`,
+      `SELECT u.dni, u.telefono, u.email, u.clave, ap.dni AS ap_dni, ap.telefono AS ap_telefono FROM usuarios u LEFT JOIN apoderados ap ON ap.id = u.apoderado_id WHERE u.id = ?`,
     ).bind(u.id).first();
     const correoPropio = yo?.email && !/\.(familia|personal)$/.test(yo.email) ? yo.email : null;
     let secciones = [];
@@ -109,6 +109,7 @@ export function rutasAuth(r) {
     return json({
       usuario: {
         id: u.id, nombre: u.nombre, email: correoPropio, rol: u.rol, rol_nombre: ROLES[u.rol], secciones,
+        puede_clave: ['direccion', 'secretaria', 'contabilidad'].includes(u.rol), tiene_clave: String(yo?.clave || '').startsWith('pbkdf2$'),
         dni: u.rol === 'padre' ? yo?.ap_dni : yo?.dni, telefono: u.rol === 'padre' ? yo?.ap_telefono : yo?.telefono,
       },
       permisos: PERMISOS[u.rol],
@@ -123,7 +124,9 @@ export function rutasAuth(r) {
     exigir(ctx);
     const { actual, nueva } = await cuerpo(ctx.request, 4000);
     const fila = await env.DB.prepare('SELECT clave FROM usuarios WHERE id = ?').bind(ctx.usuario.id).first();
-    if (!(await verificarClave(String(actual || ''), fila.clave))) throw falla(400, 'La contraseña actual no es correcta');
+    if (!['direccion', 'secretaria', 'contabilidad'].includes(ctx.usuario.rol)) throw falla(403, 'Tu cuenta no usa contraseña');
+    // Si aún no tiene contraseña (entraba solo con DNI y celular), la crea sin pedir la actual
+    if (String(fila.clave || '').startsWith('pbkdf2$') && !(await verificarClave(String(actual || ''), fila.clave))) throw falla(400, 'La contraseña actual no es correcta');
     const error = validarClaveNueva(nueva);
     if (error) throw falla(400, error);
     await env.DB.batch([

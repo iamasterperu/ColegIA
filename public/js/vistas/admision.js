@@ -1,4 +1,4 @@
-// Admisiones: familias interesadas que escribieron por WhatsApp y visitas agendadas.
+// Admisiones: familias interesadas que escribieron en el chat y visitas agendadas.
 import { api } from '../api.js';
 import { html, crudo, $, $$, fecha, cargando, vacio, aviso } from '../ui.js';
 

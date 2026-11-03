@@ -25,4 +25,15 @@ await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '9999
 await assert.rejects(() => go({ colegio: 'cole', dni: '33333333', celular: '987000003' }), /No encontramos/); // sin hijo matriculado
 for (let i = 0; i < 5; i++) await go({ colegio: 'cole', dni: '44444444', celular: '911111111' }).catch(() => {});
 await assert.rejects(() => go({ colegio: 'cole', dni: '44444444', celular: '911111111' }), /Demasiados/);
+// Contraseña opcional del personal: la crea cada persona; luego el celular solo ya no basta
+await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '987000001', crear_clave: 'corta' }), /al menos 8/);
+r = await go({ colegio: 'cole', dni: '11111111', celular: '987000001', crear_clave: 'Segura2026' });
+assert.equal((await r.json()).rol, 'direccion', 'crea su contraseña al entrar');
+await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '987000001' }), /Escribe tu contraseña/);
+await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '987000001', clave: 'Equivocada1' }), /Contraseña incorrecta/);
+r = await go({ colegio: 'cole', dni: '11111111', celular: '987000001', clave: 'Segura2026' });
+assert.equal((await r.json()).rol, 'direccion', 'entra con DNI + celular + contraseña');
+// Los padres no usan contraseña aunque la envíen
+r = await go({ colegio: 'cole', dni: '22222222', celular: '987000002', crear_clave: 'Segura2026' });
+assert.equal(DB._raw.prepare("SELECT clave FROM usuarios WHERE rol='padre'").get().clave, 'pendiente');
 console.log('OK dni');

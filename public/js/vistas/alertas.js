@@ -1,5 +1,5 @@
 // Alerta temprana: alumnos en riesgo (faltas, notas bajas, tutor virtual, exámenes) y temas
-// donde los alumnos se traban con el tutor. Lo mismo llega por WhatsApp cada lunes.
+// donde los alumnos se traban con el tutor. Lo mismo llega por el chat cada lunes.
 import { api } from '../api.js';
 import { html, crudo, cargando, vacio } from '../ui.js';
 
@@ -11,7 +11,7 @@ export async function mostrar(vista) {
   const max = Math.max(1, ...Object.values(aulas));
   vista.innerHTML = html`
     <div class="encabezado"><div><h1>Alertas tempranas</h1>
-      <p>Para actuar antes de que el alumno desapruebe. Reglas: 4 o más faltas en 2 meses, notas bajas en 2 o más cursos, se trabó 3 veces con el tutor virtual o falló la mitad de un examen. Cada lunes los tutores reciben su lista por WhatsApp.</p></div></div>
+      <p>Para actuar antes de que el alumno desapruebe. Reglas: 4 o más faltas en 2 meses, notas bajas en 2 o más cursos, se trabó 3 veces con el tutor virtual o falló la mitad de un examen. Cada lunes los tutores reciben su lista en el chat.</p></div></div>
     <div class="rejilla-2">
       <section class="tarjeta"><div class="tarjeta-titulo"><h2>${riesgo.length} alumnos en riesgo</h2></div>
         ${riesgo.length ? crudo(html`<div class="tabla-caja"><table><thead><tr><th>Alumno</th><th>Aula</th><th>Motivos</th></tr></thead>

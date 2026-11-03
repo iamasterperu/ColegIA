@@ -98,6 +98,11 @@ export function rutasAdmin(r) {
       lotes.push(env.DB.prepare('UPDATE usuarios SET clave = ? WHERE id = ?').bind(await hashClave(d.clave), id));
       lotes.push(env.DB.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id));
     }
+    if (d.quitar_clave && !d.clave) {
+      // La persona olvidó su contraseña: queda sin ella y entra con DNI + celular para crear una nueva
+      lotes.push(env.DB.prepare('UPDATE usuarios SET clave = ? WHERE id = ?').bind(CLAVE_PENDIENTE, id));
+      lotes.push(env.DB.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id));
+    }
     if (u.rol === 'profesor' && 'secciones' in d) {
       lotes.push(env.DB.prepare('DELETE FROM profesor_secciones WHERE usuario_id = ?').bind(id));
       for (const s of parseSecciones(d.secciones)) {

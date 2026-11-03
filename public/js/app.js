@@ -113,6 +113,15 @@ async function pantallaIngreso(mensaje) {
           <label>Soy…<select name="rol" required><option value="">Elige tu puesto…</option><option value="padre">Padre / madre / apoderado</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="contabilidad">Contabilidad</option><option value="profesor">Profesor(a) / auxiliar</option></select></label>
           <label>Tu DNI<input name="dni" inputmode="numeric" autocomplete="off" maxlength="12" required placeholder="8 dígitos"></label>
           <label>Tu celular registrado en el colegio<input name="celular" type="tel" inputmode="tel" autocomplete="tel" required placeholder="9XXXXXXXX"></label>
+          <div id="zona-clave" hidden>
+            <label>Contraseña<input name="clave" type="password" autocomplete="current-password" placeholder="Si ya creaste tu contraseña"></label>
+            <div id="zona-crear" hidden>
+              <label>Crea tu contraseña<input name="crear_clave" type="password" autocomplete="new-password" minlength="8" placeholder="mín. 8, letras y números"></label>
+              <label>Repite tu contraseña<input name="repetir_clave" type="password" autocomplete="new-password" minlength="8"></label>
+            </div>
+            <button class="btn btn-fantasma" id="alternar-crear" type="button">Crear mi contraseña</button>
+            <p class="pequeno">La contraseña es opcional y la crea cada persona. Quien la crea, desde entonces entra con DNI, celular y contraseña.</p>
+          </div>
           <button class="btn btn-primario" type="submit">Entrar al chat</button>
           <p class="pequeno">Solo la primera vez. Después abres la app y entras con un toque. El sistema reconoce si eres padre o madre, profesor(a), dirección, secretaría o contabilidad.</p>
         </form>
@@ -152,9 +161,31 @@ async function pantallaIngreso(mensaje) {
       await iniciar();
     } catch (er) { aviso(er.message, 'error'); } finally { boton.disabled = false; }
   };
+  // Dirección, secretaría y contabilidad pueden crear su propia contraseña
+  const CON_CLAVE = ['direccion', 'secretaria', 'contabilidad'];
+  const zonaClave = $('#zona-clave'), zonaCrear = $('#zona-crear'), botonCrear = $('#alternar-crear');
+  const mostrarClave = () => {
+    const conClave = CON_CLAVE.includes(formDni.rol.value);
+    zonaClave.hidden = !conClave;
+    if (!conClave) { zonaCrear.hidden = true; formDni.clave.value = ''; formDni.crear_clave.value = ''; formDni.repetir_clave.value = ''; }
+  };
+  formDni.rol.addEventListener('change', mostrarClave);
+  botonCrear.addEventListener('click', () => {
+    zonaCrear.hidden = !zonaCrear.hidden;
+    botonCrear.textContent = zonaCrear.hidden ? 'Crear mi contraseña' : 'Ya tengo contraseña';
+    formDni.clave.closest('label').hidden = !zonaCrear.hidden;
+    if (!zonaCrear.hidden) formDni.crear_clave.focus();
+  });
+  mostrarClave();
   formDni.addEventListener('submit', (e) => {
     e.preventDefault();
-    ir('/api/ingreso-dni', Object.fromEntries(new FormData(formDni)), formDni.querySelector('button'));
+    const datos = Object.fromEntries(new FormData(formDni));
+    if (!zonaCrear.hidden) {
+      if (datos.crear_clave !== datos.repetir_clave) return aviso('Las contraseñas no son iguales', 'error');
+      delete datos.clave;
+    } else delete datos.crear_clave;
+    delete datos.repetir_clave;
+    ir('/api/ingreso-dni', datos, formDni.querySelector('button[type=submit]'));
   });
   $('#familia-nueva').addEventListener('click', () => {
     const c = elegido();

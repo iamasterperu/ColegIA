@@ -45,7 +45,7 @@ export async function mostrar(vista) {
         <label>Cómo pagar (lo envía el bot cuando preguntan "cómo pago")<textarea name="info_pago">${c.info_pago || ''}</textarea></label>
         <label>Link de pago con tarjeta o Yape (Mercado Pago, Izipay, Niubiz…)<input name="link_pago" type="url" value="${c.link_pago || ''}" placeholder="https://mpago.la/..."></label>
         <label class="check"><input type="checkbox" name="alertas_padres" ${c.alertas_padres ? 'checked' : ''}> Alerta temprana también a los padres (cada lunes, un mensaje amable si su hijo tiene faltas, notas bajas o dificultades)</label>
-        <label class="check"><input type="checkbox" name="resumen_diario" ${c.resumen_diario ? 'checked' : ''}> Resumen diario a dirección por WhatsApp (lunes a viernes, 8 a. m.: cobranza, vouchers, faltas, alumnos en riesgo y chats por atender)</label>
+        <label class="check"><input type="checkbox" name="resumen_diario" ${c.resumen_diario ? 'checked' : ''}> Resumen diario a dirección en el chat (lunes a viernes, 8 a. m.: cobranza, vouchers, faltas, alumnos en riesgo y chats por atender)</label>
         <div class="form-fila">
           <label class="check"><input type="checkbox" name="recordatorio_auto" ${c.recordatorio_auto ? 'checked' : ''}> Enviar recordatorios automáticos cada día desde las 8 a. m.</label>
           <label>Avisar antes del vencimiento (días)<input type="number" name="recordatorio_dias_antes" min="1" max="15" value="${c.recordatorio_dias_antes}"></label>
