@@ -93,7 +93,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>
   <p class="sub">Cada persona entra a la app del colegio y conversa con el asistente, como en ChatGPT: escribe, habla o manda una foto. Sin WhatsApp, sin cuentas de Meta.</p>
   <div class="grid">
-    <div class="card"><h3>Admisiones</h3><p>Responde pensiones, horarios y requisitos con lo que el colegio aprobó, anota a la familia interesada y agenda su visita.</p></div>
+    <div class="card"><h3>Admisiones</h3><p>Cada colegio tiene un enlace y un código QR de información: las familias nuevas entran sin crear cuenta, reciben pensiones, horarios y requisitos con lo que el colegio aprobó, y dejan su nombre y celular para agendar la visita.</p></div>
     <div class="card"><h3>Informes y comunicados</h3><p>Calendario, útiles y trámites al instante. La dirección redacta, elige a quién va, revisa y confirma.</p></div>
     <div class="card"><h3>Cobranza amable</h3><p>Recordatorios antes y después del vencimiento, vouchers por foto y boletas o facturas con el proveedor del colegio.</p></div>
     <div class="card"><h3>Apoyo docente</h3><p>Exámenes con versión A y B, sesiones de clase y material adaptado en minutos.</p></div>

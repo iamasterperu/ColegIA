@@ -60,7 +60,7 @@ ROLES = [
    "Mientras tanto pueden usar el acceso de docente si el colegio se lo da."]},
  {"id": "padres", "nombre": "Padres y familias", "color": "MINT",
   "piloto": [
-   "Las familias nuevas preguntan por pensiones, horarios y requisitos, y agendan su visita desde el chat.",
+   "Las familias nuevas preguntan por pensiones, horarios y requisitos, y consultan y agendan su visita desde el enlace o QR de admisión del colegio.",
    "Cualquier familia consulta calendario, horarios, trámites y preguntas frecuentes, a cualquier hora.",
    "El asistente solo responde lo que el colegio aprobó. Si no lo sabe, deriva a secretaría.",
    "Guarda nombre y celular solo si la familia los da, con aviso de privacidad."],
