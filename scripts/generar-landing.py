@@ -92,7 +92,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 
 <section><div class="wrap">
   <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>
-  <p class="sub">Cada persona entra a la app del colegio y conversa con el asistente, como en ChatGPT: escribe, habla o manda una foto. Sin WhatsApp, sin cuentas de Meta.</p>
+  <p class="sub">Es como WhatsApp, pero del colegio: se instala en el celular, entras una sola vez con tu DNI y la app reconoce si eres padre, profesor, dirección, secretaría o contabilidad. Escribes, hablas o mandas una foto, y cada rol tiene su panel de control. Sin cuentas de Meta.</p>
   <div class="grid">
     <div class="card"><h3>Admisiones</h3><p>Cada colegio tiene un enlace y un código QR de información: las familias nuevas entran sin crear cuenta, reciben pensiones, horarios y requisitos con lo que el colegio aprobó, y dejan su nombre y celular para agendar la visita.</p></div>
     <div class="card"><h3>Informes y comunicados</h3><p>Calendario, útiles y trámites al instante. La dirección redacta, elige a quién va, revisa y confirma.</p></div>
