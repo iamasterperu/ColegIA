@@ -4,7 +4,8 @@
 import { json, cuerpo, falla, entero } from '../lib/http.js';
 import { exigir } from '../lib/sesion.js';
 import { procesarEntrante } from '../whatsapp/agente.js';
-import { lineaInterna } from '../lib/buzon.js';
+import { lineaInterna, copiarAlBuzon } from '../lib/buzon.js';
+import { claves } from '../lib/push.js';
 import { hijosDe } from '../whatsapp/roles/padre.js';
 
 const MAX_AUDIO = 700_000;
@@ -64,6 +65,40 @@ const marcarLeido = (env, ctx, tel) => env.DB.prepare(
 ).bind(ctx.colegioId, tel, ctx.usuario.id).run();
 
 export function rutasChat(r) {
+  // Texto del último mensaje sin leer: lo pide el celular al recibir un aviso push (con su propia sesión)
+  r.get('/api/chat/ultimo', async (ctx, env) => {
+    exigir(ctx);
+    const tel = lineaInterna(ctx.usuario.id);
+    const f = await env.DB.prepare(
+      `SELECT m.texto, (SELECT COUNT(*) FROM mensajes x WHERE x.colegio_id = m.colegio_id AND x.telefono = m.telefono AND x.sentido = 'saliente' AND x.id > u.chat_leido_id) AS n
+         FROM mensajes m JOIN usuarios u ON u.id = ? WHERE m.colegio_id = ? AND m.telefono = ? AND m.sentido = 'saliente' AND m.id > u.chat_leido_id ORDER BY m.id DESC LIMIT 1`,
+    ).bind(ctx.usuario.id, ctx.colegioId, tel).first();
+    const c = await env.DB.prepare('SELECT nombre FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
+    return json({ titulo: c?.nombre || 'ColegIA', cuerpo: f ? adaptar(f.texto).replace(/[*_]/g, '').slice(0, 140) : 'Tienes un mensaje nuevo', n: f?.n || 1 });
+  });
+  // Suscripción push de este celular
+  r.get('/api/push/clave', async (ctx, env) => { exigir(ctx); return json({ clave: (await claves(env)).publica }); });
+  r.post('/api/push/suscribir', async (ctx, env) => {
+    exigir(ctx);
+    const d = await cuerpo(ctx.request, 3000);
+    const endpoint = String(d.endpoint || '');
+    if (!/^https:\/\/[^\s]{10,600}$/.test(endpoint)) throw falla(400, 'Suscripción no válida');
+    const yaEstaba = await env.DB.prepare('SELECT 1 FROM push_suscripciones WHERE endpoint = ? AND usuario_id = ?').bind(endpoint, ctx.usuario.id).first();
+    await env.DB.prepare(
+      `INSERT INTO push_suscripciones (colegio_id, usuario_id, endpoint) VALUES (?, ?, ?)
+       ON CONFLICT (endpoint) DO UPDATE SET usuario_id = excluded.usuario_id, colegio_id = excluded.colegio_id`,
+    ).bind(ctx.colegioId, ctx.usuario.id, endpoint).run();
+    // Mensaje de bienvenida: sirve de prueba de que el aviso llega al celular
+    if (!yaEstaba) await copiarAlBuzon(env, ctx.colegioId, { usuarioId: ctx.usuario.id, telefono: 'app' }, '🔔 Listo: te avisaremos aquí cuando el colegio te escriba.', 'texto');
+    return json({ ok: true });
+  });
+  r.post('/api/push/baja', async (ctx, env) => {
+    exigir(ctx);
+    const d = await cuerpo(ctx.request, 3000);
+    await env.DB.prepare('DELETE FROM push_suscripciones WHERE endpoint = ? AND usuario_id = ?').bind(String(d.endpoint || ''), ctx.usuario.id).run();
+    return json({ ok: true });
+  });
+
   // Hijos del apoderado (para elegir con cuál conversar cuando tiene más de uno)
   r.get('/api/chat/hijos', async (ctx, env) => {
     exigir(ctx);

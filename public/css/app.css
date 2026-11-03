@@ -377,3 +377,7 @@ th select { min-width: 140px; margin-top: 4px; }
 .hijo-card:hover { border-color: var(--wa-verde); }
 .hijo-card small { display: block; color: var(--texto-2); }
 .hijo-ini { width: 44px; height: 44px; border-radius: 50%; background: #25d366; color: #052e16; display: grid; place-items: center; font-weight: 800; font-size: 1.2rem; }
+
+.chat-avisos { background: var(--wa-barra); padding: 6px 12px; flex: none; }
+.chat-avisos-btn { width: 100%; border: 0; border-radius: 10px; background: #d9fdd3; color: #075e54; font: inherit; font-weight: 700; padding: 9px; cursor: pointer; }
+.btn-avisos { background: #d9fdd3; color: #075e54; }

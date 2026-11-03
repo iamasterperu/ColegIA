@@ -1,6 +1,7 @@
 // Buzón del chat privado: lo que el colegio envía a una persona (recordatorios, avisos, constancias)
 // también aparece en su chat dentro de la app, con contador de no leídos.
 import { normalizarTelefono } from './texto.js';
+import { avisarPush } from './push.js';
 
 export const lineaInterna = (usuarioId) => `51988${String(usuarioId).padStart(6, '0')}`;
 
@@ -30,6 +31,7 @@ export async function copiarAlBuzon(env, colegioId, m, texto, tipo = 'texto') {
         `INSERT INTO mensajes (colegio_id, telefono, usuario_id, sentido, tipo, texto, canal, motivo, estado)
          VALUES (?, ?, ?, 'saliente', ?, ?, 'simulado', ?, 'ok')`,
       ).bind(colegioId, linea, id, tipo === 'plantilla' ? 'texto' : tipo, texto, m.motivo || 'aviso').run();
+      await avisarPush(env, id);
     }
   } catch (e) { console.error('buzon', e); }
 }

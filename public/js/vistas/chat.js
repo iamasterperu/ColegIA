@@ -76,6 +76,7 @@ export async function mostrar(vista) {
         <button class="btn btn-primario btn-redondo" aria-label="Enviar">➤</button>
       </form>
     </div>`;
+  import('../pwa.js').then((m) => { const z = document.createElement('div'); z.className = 'chat-avisos'; m.botonAvisos(z, { clase: 'chat-avisos-btn' }); if (z.firstChild) vista.querySelector('.chat-app')?.prepend(z); }).catch(() => {});
   const lista = $('#chat-msgs', vista);
   const form = $('#chat-form', vista);
   const caja = form.texto;

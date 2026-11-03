@@ -234,7 +234,7 @@ function armarMarco() {
   });
   $('#abrir-menu').addEventListener('click', () => $('#lateral').classList.toggle('abierto'));
   iniciarInsignia();
-  import('./pwa.js').then((m) => m.botonInstalar($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu' })).catch(() => {});
+  import('./pwa.js').then((m) => { m.botonInstalar($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu' }); m.botonAvisos($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu btn-avisos' }); m.asegurarAvisos(); }).catch(() => {});
 }
 
 // Contador de mensajes sin leer del chat (como en WhatsApp): en el menú, en el título y en el ícono de la app

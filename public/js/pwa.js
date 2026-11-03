@@ -62,3 +62,45 @@ export function botonInstalar(contenedor, { clase = 'btn-instalar' } = {}) {
   contenedor.append(caja2);
   return caja2;
 }
+
+// ---------- Avisos de mensajes nuevos (notificaciones push) ----------
+const clavePush = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+const llamar = (ruta, cuerpo) => fetch(ruta, cuerpo
+  ? { method: 'POST', headers: { 'content-type': 'application/json', 'x-colegia': '1' }, body: JSON.stringify(cuerpo) } : {}).then((r) => r.json());
+const hayPush = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+async function suscribir() {
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    const { clave } = await llamar('/api/push/clave');
+    sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: clavePush(clave) });
+  }
+  await llamar('/api/push/suscribir', { endpoint: sub.endpoint });
+}
+// Con el permiso ya dado, se vuelve a vincular este celular con la persona que acaba de entrar
+export async function asegurarAvisos() {
+  try { if (hayPush() && Notification.permission === 'granted') await suscribir(); } catch { /* sin push */ }
+}
+export function botonAvisos(contenedor, { clase = 'btn-instalar btn-avisos' } = {}) {
+  if (!contenedor || (hayPush() && Notification.permission === 'granted') || (hayPush() && Notification.permission === 'denied' && false)) return null;
+  const caja2 = document.createElement('div');
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = clase; b.textContent = '🔔 Activar avisos de mensajes';
+  const ayuda = document.createElement('p'); ayuda.className = 'instalar-ayuda'; ayuda.hidden = true;
+  b.onclick = async () => {
+    if (!hayPush()) {
+      ayuda.textContent = /iphone|ipad|ipod/i.test(navigator.userAgent) && !instalada()
+        ? 'En iPhone, primero instala la app («Compartir» → «Añadir a pantalla de inicio»), ábrela desde su ícono y activa los avisos desde ahí.'
+        : 'Este navegador no permite avisos. Usa Chrome (Android) o instala la app.';
+      ayuda.hidden = false; return;
+    }
+    if (Notification.permission === 'denied') { ayuda.textContent = 'Los avisos están bloqueados. Actívalos en los ajustes del celular para ColegIA y vuelve a intentar.'; ayuda.hidden = false; return; }
+    try {
+      if ((await Notification.requestPermission()) === 'granted') { await suscribir(); caja2.remove(); } else { ayuda.textContent = 'No se activaron los avisos.'; ayuda.hidden = false; }
+    } catch { ayuda.textContent = 'No se pudieron activar los avisos en este celular.'; ayuda.hidden = false; }
+  };
+  caja2.append(b, ayuda);
+  contenedor.append(caja2);
+  return caja2;
+}
