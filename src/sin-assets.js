@@ -15,7 +15,7 @@ export default {
     const { pathname } = new URL(request.url);
     if (/^\/(api|webhook|d|c|carta)\//.test(pathname)) return app.fetch(request, env, ctx);
     // La portada es la página pública de ColegIA; la app (inicio de sesión) vive en /entrar
-    return servir(pathname === '/' ? '/colegia.html' : pathname === '/entrar' ? '/index.html' : pathname === '/panel-iamaster' ? '/dueno.html' : pathname);
+    return servir(pathname === '/' ? '/colegia.html' : pathname === '/entrar' ? '/index.html' : pathname === '/panel-iamaster' ? '/dueno.html' : pathname.startsWith('/admision/') ? '/admision.html' : pathname);
   },
   scheduled: app.scheduled,
 };

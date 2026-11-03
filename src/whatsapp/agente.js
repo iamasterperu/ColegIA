@@ -88,7 +88,7 @@ export async function procesarEntrante(env, conexion, entrada) {
   const admisionActiva = async () => colegio.es_demo || (await infoColegio(env, colegio)).admision_activa === '1';
 
   // ---- Colegio demo: el celular elige un rol ----
-  if (colegio.es_demo) {
+  if (colegio.es_demo && !entrada.publico) {
     const pedido = t.match(/^(?:soy (?:el |la |un |una )?|modo |probar como |rol )?(padre|mama|apoderado|profesor|profesora|docente|contador|contadora|contabilidad|secretaria|director|directora|direccion|alumno|alumna|estudiante)$/);
     if (pedido) {
       await env.DB.prepare(

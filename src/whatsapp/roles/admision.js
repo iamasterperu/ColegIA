@@ -1,6 +1,6 @@
 // Atención a familias interesadas (números no registrados) e informes generales del colegio.
 // Solo responde con lo que el colegio aprobó. Guarda nombre y celular únicamente si la familia los da.
-import { normalizar } from '../../lib/texto.js';
+import { normalizar, normalizarTelefono } from '../../lib/texto.js';
 import { guardarPendiente, borrarPendiente } from '../comun.js';
 
 export const CLAVES_INFO = {
@@ -45,27 +45,34 @@ export async function responderFamilia(env, colegio, tel, texto, estado) {
   const info = await infoColegio(env, colegio);
   const fin = colegio.es_demo ? { paso: 'menu' } : null; // en la demo la familia sigue en su conversación
   const carta = env.URL_BASE ? `\n\n📄 Carta de presentación del colegio: ${env.URL_BASE}/carta/${colegio.slug}` : '';
+  const web = String(tel).startsWith('web-'); // visitante del chat público (sin celular conocido)
   const seguir = (r, nuevo) => (nuevo ? guardarPendiente(env, colegio, tel, 'adm', nuevo).then(() => r) : borrarPendiente(env, colegio, tel).then(() => r));
 
   if (estado?.paso === 'nombre') {
     const nombre = texto.trim().slice(0, 80);
     if (nombre.length < 2) return seguir('¿Cuál es tu nombre?', estado);
+    if (web) return seguir('Gracias, ' + nombre.split(' ')[0] + '. ¿A qué número de celular te contactamos?', { paso: 'celular', nombre });
     return seguir('Gracias, ' + nombre.split(' ')[0] + '. ¿Para qué grado te interesa el colegio? (por ejemplo: 3 años, 2.° de primaria)', { paso: 'grado', nombre });
+  }
+  if (estado?.paso === 'celular') {
+    const cel = normalizarTelefono(texto);
+    if (!cel) return seguir('No pude leer ese número. Escríbelo con 9 dígitos, por ejemplo 987654321.', estado);
+    return seguir('Gracias. ¿Para qué grado te interesa el colegio? (por ejemplo: 3 años, 2.° de primaria)', { paso: 'grado', nombre: estado.nombre, contacto: cel });
   }
   if (estado?.paso === 'grado') {
     const grado = texto.trim().slice(0, 40);
     const horarios = (info.visitas || '').split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 6);
     if (!horarios.length) {
-      await guardarLead(env, colegio, tel, estado.nombre, grado);
+      await guardarLead(env, colegio, estado.contacto || tel, estado.nombre, grado);
       return seguir('Anotamos tu interés. Secretaría te contactará en horario de atención para coordinar la visita.' + carta, fin);
     }
-    return seguir('Estos son los horarios disponibles para la visita:\n' + horarios.map((h, i) => `${i + 1}️⃣ ${h}`).join('\n') + '\n\nResponde con el número.', { paso: 'horario', nombre: estado.nombre, grado, horarios });
+    return seguir('Estos son los horarios disponibles para la visita:\n' + horarios.map((h, i) => `${i + 1}️⃣ ${h}`).join('\n') + '\n\nResponde con el número.', { paso: 'horario', nombre: estado.nombre, contacto: estado.contacto, grado, horarios });
   }
   if (estado?.paso === 'horario') {
     const n = Number(t);
     const h = estado.horarios[n - 1];
     if (!h) return seguir('Responde con el número del horario que prefieres.', estado);
-    const lead = await guardarLead(env, colegio, tel, estado.nombre, estado.grado);
+    const lead = await guardarLead(env, colegio, estado.contacto || tel, estado.nombre, estado.grado);
     await env.DB.prepare('INSERT INTO visitas (colegio_id, lead_id, horario) VALUES (?, ?, ?)').bind(colegio.id, lead, h).run();
     return seguir(`✅ Listo, ${estado.nombre.split(' ')[0]}. Te esperamos: *${h}* en ${colegio.nombre}.${colegio.direccion ? '\n📍 ' + colegio.direccion : ''}\nSi necesitas cambiarla, escríbenos por aquí.${carta}`, fin);
   }
@@ -76,6 +83,10 @@ export async function responderFamilia(env, colegio, tel, texto, estado) {
   if (/^(4|visita|agendar|conocer|cita)\b/.test(t) || /\b(visita|agendar|conocer el colegio)\b/.test(t)) {
     await guardarPendiente(env, colegio, tel, 'adm', { paso: 'nombre' });
     return 'Con gusto. ¿Cuál es tu nombre?';
+  }
+  if (web && /^(5|secretaria|hablar|persona|humano|llamar)\b/.test(t)) {
+    await guardarPendiente(env, colegio, tel, 'adm', { paso: 'nombre' });
+    return 'Con gusto te contactará secretaría. ¿Cuál es tu nombre?';
   }
   if (/^(5|secretaria|hablar|persona|humano|llamar)\b/.test(t)) {
     await guardarLead(env, colegio, tel, 'Pidió hablar con secretaría', null);
