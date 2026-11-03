@@ -21,16 +21,16 @@ const leer = async (r) => r.json();
 // demo: sin celular → línea interna con rol de su cuenta
 let r = await leer(await rutas['POST /api/chat'](ctx({ id: 1, colegio_id: 1, rol: 'direccion' }, { texto: 'hola' }), env));
 assert.ok(r.mensajes.length >= 2, 'entrante + respuesta');
-assert.equal(DB._raw.prepare("SELECT rol FROM wa_identidad_demo WHERE telefono='51988000001'").get().rol, 'direccion');
 // historial incremental
 const h = await leer(await rutas['GET /api/chat/historial'](ctx({ id: 1, colegio_id: 1, rol: 'direccion' }), env));
 assert.equal(h.length, r.mensajes.length);
 // padre con celular de apoderado, colegio real
 r = await leer(await rutas['POST /api/chat'](ctx({ id: 2, colegio_id: 2, rol: 'padre' }, { texto: 'hola' }), env));
 assert.ok(r.mensajes.length >= 2);
-assert.equal(DB._raw.prepare("SELECT COUNT(*) n FROM mensajes WHERE telefono='51911111111'").get().n, r.mensajes.length);
-// profesor sin celular en colegio real → error claro
-await assert.rejects(() => rutas['POST /api/chat'](ctx({ id: 3, colegio_id: 2, rol: 'profesor' }, { texto: 'hola' }), env), /celular/);
+assert.ok(DB._raw.prepare("SELECT COUNT(*) n FROM mensajes WHERE telefono='51988000002'").get().n >= 2);
+// profesor sin celular en colegio real → funciona igual (la identidad es la sesión)
+r = await leer(await rutas['POST /api/chat'](ctx({ id: 3, colegio_id: 2, rol: 'profesor' }, { texto: 'hola' }), env));
+assert.ok(r.mensajes.length >= 2, 'profesor sin celular también chatea');
 // sin sesión
 await assert.rejects(() => rutas['GET /api/chat/historial']({ usuario: null, url: new URL('https://x.pe/') }, env), /Inicia sesión/);
 console.log('OK chat');

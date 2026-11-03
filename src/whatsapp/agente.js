@@ -44,7 +44,7 @@ const introDemo = (colegio) =>
 export async function procesarEntrante(env, conexion, entrada) {
   const colegio = conexion.colegio;
   const tel = entrada.telefono;
-  let persona = await identificar(env, colegio, tel);
+  let persona = entrada.persona || await identificar(env, colegio, tel);
   const origen = entrada.origen || env.URL_BASE || '';
 
   const textoGuardado = entrada.tipo === 'imagen' ? `[📷 foto] ${entrada.texto || ''}`.trim()

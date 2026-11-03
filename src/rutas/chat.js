@@ -3,7 +3,6 @@
 // reconoce por su rol: dirección, profesores, secretaría, contabilidad o padres.
 import { json, cuerpo, falla, entero } from '../lib/http.js';
 import { exigir } from '../lib/sesion.js';
-import { normalizarTelefono } from '../lib/texto.js';
 import { procesarEntrante } from '../whatsapp/agente.js';
 
 const MAX_AUDIO = 700_000;
@@ -23,36 +22,38 @@ function aBase64(buf) {
   return btoa(bin);
 }
 
-// La "línea" de cada persona dentro del chat: su celular registrado; en colegios demo sin celular,
-// una línea interna con el rol de su cuenta.
+// La "línea" de cada persona dentro del chat: una línea interna propia de su cuenta. Así el chat
+// funciona sin celular registrado ni WhatsApp: la identidad es la sesión iniciada en la app.
 async function lineaDe(env, ctx, colegio) {
   const u = await env.DB.prepare(
-    `SELECT u.id, u.rol, u.telefono, a.telefono AS tel_apoderado
-       FROM usuarios u LEFT JOIN apoderados a ON a.id = u.apoderado_id AND a.colegio_id = u.colegio_id
+    `SELECT u.id, u.nombre, u.rol, u.apoderado_id, ap.nombres, ap.apellidos
+       FROM usuarios u LEFT JOIN apoderados ap ON ap.id = u.apoderado_id AND ap.colegio_id = u.colegio_id
       WHERE u.id = ? AND u.colegio_id = ? AND u.activo = 1`,
   ).bind(ctx.usuario.id, ctx.colegioId).first();
   if (!u) throw falla(401, 'Sesión no válida');
-  const real = normalizarTelefono(u.rol === 'padre' ? u.tel_apoderado : u.telefono);
-  if (real) return real;
-  if (!colegio.es_demo) {
-    throw falla(400, u.rol === 'padre'
-      ? 'Tu celular aún no está registrado en el colegio. Pide a secretaría que lo agregue para activar tu chat.'
-      : 'Tu cuenta no tiene celular registrado. Pide a dirección que lo agregue en «Usuarios y roles».');
+  const telefono = `51988${String(u.id).padStart(6, '0')}`;
+  let persona;
+  if (u.rol === 'padre') {
+    if (!u.apoderado_id) throw falla(400, 'Tu cuenta aún no está vinculada a un apoderado. Pide a secretaría que lo vincule.');
+    persona = {
+      rol: 'padre', nombre: String(u.nombres).split(' ')[0], telefono,
+      apoderado: { id: u.apoderado_id, nombres: u.nombres, apellidos: u.apellidos },
+      usuario: { id: null, colegio_id: colegio.id, nombre: `${u.nombres} ${u.apellidos}`, rol: 'padre', apoderado_id: u.apoderado_id },
+    };
+  } else {
+    persona = {
+      rol: u.rol, nombre: u.nombre.split(' ')[0], telefono,
+      usuario: { id: u.id, colegio_id: colegio.id, nombre: u.nombre, rol: u.rol, apoderado_id: null },
+    };
   }
-  const interna = `51988${String(u.id).padStart(6, '0')}`;
-  const rol = ['direccion', 'contabilidad', 'secretaria', 'profesor', 'padre'].includes(u.rol) ? u.rol : 'direccion';
-  await env.DB.prepare(
-    `INSERT INTO wa_identidad_demo (colegio_id, telefono, rol) VALUES (?, ?, ?)
-       ON CONFLICT (colegio_id, telefono) DO UPDATE SET rol = excluded.rol`,
-  ).bind(colegio.id, interna, rol).run();
-  return interna;
+  return { telefono, persona };
 }
 
 export function rutasChat(r) {
   r.get('/api/chat/historial', async (ctx, env) => {
     exigir(ctx);
     const colegio = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
-    const tel = await lineaDe(env, ctx, colegio);
+    const { telefono: tel } = await lineaDe(env, ctx, colegio);
     const despues = entero(ctx.url.searchParams.get('despues'), 0);
     const { results } = await env.DB.prepare(
       `SELECT id, sentido, tipo, texto, transcripcion, motivo, creado_en FROM mensajes
@@ -65,7 +66,7 @@ export function rutasChat(r) {
     exigir(ctx);
     const d = await cuerpo(ctx.request, MAX_ARCHIVO * 1.4);
     const colegio = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
-    const telefono = await lineaDe(env, ctx, colegio);
+    const { telefono, persona } = await lineaDe(env, ctx, colegio);
     // Todo queda dentro de la app: los avisos a otras personas se guardan pero no salen a WhatsApp.
     const conexion = { colegio, modo: 'simulado', numerosPrueba: [] };
     let audio = null;
@@ -92,7 +93,7 @@ export function rutasChat(r) {
       } catch { /* queda por atender */ }
     }
     await procesarEntrante(env, conexion, {
-      telefono,
+      telefono, persona,
       tipo: audio ? 'audio' : imagen ? 'imagen' : documento ? 'documento' : 'texto',
       texto: audio ? null : String(d.texto || '').slice(0, 2000),
       transcripcion, audio, imagen, documento,
