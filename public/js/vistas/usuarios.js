@@ -23,7 +23,7 @@ export async function mostrar(vista) {
         <td>${u.nombre}</td><td>${u.email}</td><td>${u.telefono ? `+${u.telefono}` : '—'}</td><td title="${DESCRIPCION[u.rol]}">${ROL_NOMBRE[u.rol]}</td><td>${u.secciones || ''}</td>
         <td>${u.ultimo_acceso ? fecha(u.ultimo_acceso, true) : 'Nunca'}</td>
         <td>${u.activo ? crudo('<span class="etiqueta etiqueta-ok">Activo</span>') : crudo('<span class="etiqueta">Inactivo</span>')}</td>
-        <td><div class="acciones" style="flex-wrap:nowrap"><button class="btn btn-chico" data-editar="${u.id}">Editar</button>${u.rol !== 'padre' ? crudo(html`<button class="btn btn-chico" data-enlace="${u.id}">Enlace de contraseña</button>`) : ''}${u.telefono && u.rol !== 'padre' && u.activo ? crudo(html`<button class="btn btn-chico" data-bienvenida="${u.id}">Bienvenida</button>`) : ''}</div></td></tr>`)}</tbody></table></div>
+        <td><div class="acciones" style="flex-wrap:nowrap"><button class="btn btn-chico" data-editar="${u.id}">Editar</button>${crudo(html`<button class="btn btn-chico" data-enlace="${u.id}">Enlace de contraseña</button>`)}${u.telefono && u.rol !== 'padre' && u.activo ? crudo(html`<button class="btn btn-chico" data-bienvenida="${u.id}">Bienvenida</button>`) : ''}</div></td></tr>`)}</tbody></table></div>
     <section class="tarjeta" style="margin-top:16px"><h2>Qué ve cada rol</h2>
       <dl class="datos">${Object.entries(DESCRIPCION).map(([k, t]) => html`<div><dt>${ROL_NOMBRE[k]}</dt><dd>${t}</dd></div>`)}</dl></section>`;
 

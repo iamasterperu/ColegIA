@@ -74,9 +74,6 @@ export function rutasAuth(r) {
     }
 
     if (u.suspendido) throw falla(403, 'El servicio de este colegio está suspendido. Comunícate con la dirección.');
-    if (u.rol === 'padre' && !u.portal_padres) {
-      throw falla(403, 'Los padres de este colegio se atienden por WhatsApp: escribe al número del colegio.');
-    }
     const token = tokenAleatorio();
     const duracion = recordar ? DURACION_RECORDADA : DURACION_SESION;
     const expira = new Date(Date.now() + duracion * 1000).toISOString().replace('T', ' ').slice(0, 19);

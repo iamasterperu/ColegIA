@@ -105,7 +105,7 @@ async function pantallaIngreso(mensaje) {
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
         <form id="form-ingreso" class="form">
           <label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>
-          <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option></select></label>
+          <label>Puesto<select name="rol" required><option value="">Elige tu puesto…</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="profesor">Profesor(a)</option><option value="contabilidad">Contabilidad</option><option value="padre">Padre / Apoderado</option></select></label>
           <label>Correo<input name="email" type="email" autocomplete="username" required></label>
           <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
           <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="recordar" checked> <span>Mantener mi sesión en este celular (entrar con un toque)</span></label>
@@ -148,7 +148,7 @@ async function pantallaInvitacion(token) {
     history.replaceState(null, '', '/entrar');
     return pantallaIngreso(e.message);
   }
-  const puesto = { direccion: 'Dirección', secretaria: 'Secretaría', profesor: 'Profesor(a)', contabilidad: 'Contabilidad' }[inv.rol] || inv.rol;
+  const puesto = { direccion: 'Dirección', secretaria: 'Secretaría', profesor: 'Profesor(a)', contabilidad: 'Contabilidad', padre: 'Padre / Apoderado' }[inv.rol] || inv.rol;
   app.innerHTML = html`
     <main class="ingreso"><section class="ingreso-caja">
       <div class="ingreso-marca"><div class="logo-letra">${inv.colegio[0]}</div><div><p class="sobretitulo">ColegIA</p><h1>${inv.colegio}</h1></div></div>

@@ -32,7 +32,7 @@ export function rutasAdmin(r) {
     if (!ROLES[d.rol]) throw falla(400, 'Rol inválido');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !nombre) throw falla(400, 'Nombre y correo válidos son obligatorios');
     // Sin contraseña: la persona recibe un enlace para crear la suya
-    const conEnlace = !d.clave && d.rol !== 'padre';
+    const conEnlace = !d.clave;
     const error = conEnlace ? null : validarClaveNueva(d.clave);
     if (error) throw falla(400, error);
     let apoderadoId = null;
@@ -61,7 +61,7 @@ export function rutasAdmin(r) {
   r.post('/api/usuarios/:id/enlace', async (ctx, env) => {
     exigir(ctx, 'usuarios.gestionar');
     const id = entero(ctx.params.id);
-    const u = await env.DB.prepare("SELECT id FROM usuarios WHERE id = ? AND colegio_id = ? AND rol != 'padre'").bind(id, ctx.colegioId).first();
+    const u = await env.DB.prepare("SELECT id FROM usuarios WHERE id = ? AND colegio_id = ?").bind(id, ctx.colegioId).first();
     if (!u) throw falla(404, 'Usuario no encontrado');
     await env.DB.batch([env.DB.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id), sentenciaAuditoria(env, ctx, 'enlace_contrasena', 'usuario', id)]);
     return json({ enlace: enlaceInv(env, await crearInvitacion(env, 'usuario', id)) });
