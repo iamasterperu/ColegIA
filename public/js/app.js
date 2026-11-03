@@ -22,6 +22,7 @@ export const icono = (n) =>
   `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONOS[n]}"/></svg>`;
 
 const MENU = [
+  { ruta: 'chat', texto: 'Chat del colegio', icono: 'whatsapp' },
   { ruta: 'inicio', texto: 'Buscar alumno', icono: 'buscar', ver: (s) => s.usuario.rol !== 'padre' },
   { ruta: 'inicio', texto: 'Mis hijos', icono: 'familia', ver: (s) => s.usuario.rol === 'padre' },
   { ruta: 'panel', texto: 'Panel de dirección', icono: 'panel', permiso: 'panel.ver' },
@@ -43,6 +44,7 @@ const MENU = [
 ];
 
 const VISTAS = {
+  chat: () => import('./vistas/chat.js'),
   inicio: () => import('./vistas/inicio.js'),
   alumno: () => import('./vistas/ficha.js'),
   panel: () => import('./vistas/panel.js'),
@@ -207,7 +209,7 @@ function armarMarco() {
 
 let rutaActual = null;
 async function enrutar() {
-  const [nombre = 'inicio', ...resto] = location.hash.replace(/^#\/?/, '').split('/');
+  const [nombre = (['padre', 'profesor'].includes(sesion.usuario?.rol) ? 'chat' : 'inicio'), ...resto] = location.hash.replace(/^#\/?/, '').split('/');
   const cargador = VISTAS[nombre] || VISTAS.inicio;
   rutaActual = location.hash;
   const activa = !VISTAS[nombre] || nombre === 'alumno' ? 'inicio' : nombre;
@@ -216,6 +218,7 @@ async function enrutar() {
   // Elemento nuevo en cada navegación: así no se acumulan eventos de la vista anterior
   const anterior = $('#vista');
   const vista = anterior.cloneNode(false);
+  vista.classList.toggle('vista-chat', nombre === 'chat');
   anterior.replaceWith(vista);
   const item = MENU.find((m) => m.ruta === nombre);
   $('#barra-titulo').textContent = nombre === 'alumno' ? 'Ficha 360 del alumno' : item?.texto || '';

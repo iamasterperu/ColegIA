@@ -17,6 +17,7 @@ import { rutasPublicas } from './rutas/publico.js';
 import { rutasAutomatizacion } from './rutas/automatizacion.js';
 import { rutasDiplomas } from './rutas/diplomas.js';
 import { rutasDueno } from './rutas/dueno.js';
+import { rutasChat } from './rutas/chat.js';
 import { cumpleanios, borradoresFiestas, reporteDiario, reporteMensual } from './whatsapp/automatizacion.js';
 import { seguimientoReinscripcion } from './whatsapp/reinscripcion.js';
 import { rutasDocente } from './rutas/docente.js';
@@ -27,7 +28,7 @@ import { cargarConexion } from './whatsapp/envio.js';
 
 const router = new Router();
 [rutasAuth, rutasAlumnos, rutasPagos, rutasUtiles, rutasPanel, rutasWhatsapp, rutasWebhook,
-  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos, rutasPublicas, rutasAutomatizacion, rutasDiplomas, rutasDueno].forEach((registrar) => registrar(router));
+  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos, rutasPublicas, rutasAutomatizacion, rutasDiplomas, rutasDueno, rutasChat].forEach((registrar) => registrar(router));
 
 const PUBLICAS = ['/api/login', '/api/logout'];
 
