@@ -36,7 +36,7 @@ export const confirmarUtiles = (grado, items, origen = '') => ({
 });
 
 export async function cargaImagen(env, colegio, persona, imagen, caption) {
-  if (!hayIA(env)) return { texto: 'No puedo leer fotos en este momento (IA desactivada). Súbela desde la web.' };
+  if (!hayIA(env)) return { texto: 'No puedo leer fotos en este momento (asistente no disponible). Súbela desde la web.' };
   const r = await leerImagen(env, imagen,
     'Analiza la imagen de un colegio peruano. ' +
     'Si es una LISTA DE ÚTILES responde {"tipo":"utiles","grado":"grado si aparece","items":[{"cantidad":"2","descripcion":"cuaderno cuadriculado A4","detalle":""}]}. ' +

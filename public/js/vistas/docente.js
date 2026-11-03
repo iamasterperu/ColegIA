@@ -28,7 +28,7 @@ export async function mostrar(vista, [id]) {
           </div>
           <div id="f-estado" class="pequeno" role="status"></div>
         </fieldset>
-        <button class="btn btn-primario">Crear con IA</button></form></section>`) : ''}
+        <button class="btn btn-primario">Crear con el asistente</button></form></section>`) : ''}
     <section class="tarjeta">
       ${docs.length ? crudo(html`<div class="tabla-caja"><table>
         <thead><tr><th>Código</th><th>Tipo</th><th>Título</th><th>Autor</th><th>Creado</th><th>Calificados</th><th>PDF</th></tr></thead>

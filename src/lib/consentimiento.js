@@ -2,13 +2,13 @@
 // versión: los consentimientos guardados quedan ligados a la versión que el padre aceptó.
 export const FINALIDADES = {
   whatsapp: {
-    version: 'wa-2026-1',
-    titulo: 'Comunicaciones por WhatsApp',
+    version: 'wa-2026-2',
+    titulo: 'Comunicaciones del colegio',
     texto:
-      'Autorizo a {colegio} a usar mi número de celular para enviarme por WhatsApp recordatorios de pago, ' +
+      'Autorizo a {colegio} a usar mi número de celular para enviarme por el chat del colegio recordatorios de pago, ' +
       'avisos, listas de útiles e información académica de mi hijo(a), y a responder mis consultas por ese medio. ' +
-      'WhatsApp es un servicio de Meta Platforms, con servidores fuera del Perú (flujo transfronterizo). ' +
-      'Puedo retirar esta autorización en cualquier momento escribiendo BAJA o desde el portal.',
+      'El servicio funciona con servidores fuera del Perú (flujo transfronterizo). ' +
+      'Puedo retirar esta autorización en cualquier momento escribiendo BAJA o desde Mi cuenta.',
   },
   salud: {
     version: 'salud-2026-1',
@@ -19,12 +19,12 @@ export const FINALIDADES = {
       'Solo los verá el personal autorizado y el docente de aula verá únicamente las alertas necesarias.',
   },
   tutor_ia: {
-    version: 'tutor-2026-1',
-    titulo: 'Tutor de IA para mi hijo(a)',
+    version: 'tutor-2026-2',
+    titulo: 'Tutor virtual para mi hijo(a)',
     texto:
-      'Autorizo a {colegio} a que mi hijo(a) use el tutor de inteligencia artificial por WhatsApp desde el celular que ' +
+      'Autorizo a {colegio} a que mi hijo(a) use el tutor virtual por el chat del colegio desde el celular que ' +
       'registro. El tutor guía con preguntas y no entrega respuestas; su profesor verá en qué temas pidió ayuda. ' +
-      'El servicio usa Cloudflare Workers AI (servidores fuera del Perú). Puedo retirar esta autorización cuando quiera.',
+      'El servicio funciona con servidores fuera del Perú (flujo transfronterizo). Puedo retirar esta autorización cuando quiera.',
   },
   imagen: {
     version: 'imagen-2026-1',

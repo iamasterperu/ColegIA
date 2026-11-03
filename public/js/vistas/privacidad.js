@@ -36,12 +36,11 @@ export async function mostrar(raiz) {
       <li><strong>Prestar el servicio educativo</strong> (matrícula, evaluación, asistencia, cobranza). Es necesario para el contrato y no requiere consentimiento adicional.</li>
       ${Object.values(c.finalidades).map((f) => html`<li><strong>${f.titulo}</strong> (requiere tu autorización, versión ${f.version}): ${f.texto}</li>`)}
     </ul>
-    <p>Puedes dar o retirar cada autorización en el portal (<em>Protección de datos</em>), en secretaría o escribiendo BAJA al WhatsApp del colegio. Retirarla no afecta la matrícula.</p>
+    <p>Puedes dar o retirar cada autorización en el portal (<em>Protección de datos</em>), en secretaría o escribiendo BAJA en el chat del colegio. Retirarla no afecta la matrícula.</p>
 
     <h2>4. Quién más accede (encargados)</h2>
     <ul>
-      <li><strong>Cloudflare, Inc.</strong>: aloja la aplicación y la base de datos.</li>
-      <li><strong>Meta Platforms (WhatsApp)</strong>: transmite los mensajes, solo si autorizaste ese canal.</li>
+      <li><strong>Proveedores de tecnología</strong>: alojan la aplicación y la base de datos y transmiten los mensajes del chat.</li>
     </ul>
     <p>Estos proveedores tienen servidores fuera del Perú, por lo que hay <strong>flujo transfronterizo</strong> de datos. Las fotos de listas de útiles se leen en el equipo de quien las carga y no se envían a terceros.</p>
 

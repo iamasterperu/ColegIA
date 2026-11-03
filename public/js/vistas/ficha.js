@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { html, crudo, $, soles, fecha, telefonoBonito, modal, aviso, conBoton, cargando, ROL_NOMBRE, ACCIONES } from '../ui.js';
 import { icono, puede } from '../app.js';
 
-const FIN = { whatsapp: 'WhatsApp', salud: 'Salud', imagen: 'Imagen', tutor_ia: 'Tutor IA' };
+const FIN = { whatsapp: 'WhatsApp', salud: 'Salud', imagen: 'Imagen', tutor_ia: 'Tutor virtual' };
 
 function claseNota(n) {
   if (/^\d+$/.test(n)) return Number(n) < 11 ? 'nota-baja' : '';
@@ -28,14 +28,14 @@ function seccionNotas(ac) {
 
 function seccionAprendizaje(ac) {
   if (!ac.examenes?.length && !ac.tutor?.length) return '';
-  return html`<section class="tarjeta"><div class="tarjeta-titulo"><h2>Exámenes y tutor IA</h2></div>
+  return html`<section class="tarjeta"><div class="tarjeta-titulo"><h2>Exámenes y tutor virtual</h2></div>
     ${ac.examenes.length ? crudo(html`<div class="tabla-caja"><table>
       <thead><tr><th>Examen</th><th class="num">Puntaje</th><th>Temas que falló</th></tr></thead>
       <tbody>${ac.examenes.map((e) => html`<tr><td>${e.titulo}<div class="pequeno">${fecha(e.fecha)}</div></td>
         <td class="num ${e.puntaje != null && e.puntaje < 11 ? 'nota-baja' : ''}">${e.puntaje ?? '—'}</td>
         <td class="pequeno">${e.temas.join(', ') || (e.falladas ? `${e.falladas} pregunta(s)` : 'Ninguno')}</td></tr>`)}</tbody>
     </table></div>`) : crudo('<p class="pequeno">Sin exámenes calificados por WhatsApp.</p>')}
-    ${ac.tutor.length ? crudo(html`<p style="margin:12px 0 6px"><strong>Practicó con el tutor IA</strong> <span class="pequeno">(últimos 60 días; solo temas, no conversaciones)</span></p>
+    ${ac.tutor.length ? crudo(html`<p style="margin:12px 0 6px"><strong>Practicó con el tutor virtual</strong> <span class="pequeno">(últimos 60 días; solo temas, no conversaciones)</span></p>
       <div class="chips">${ac.tutor.map((t) => html`<span class="etiqueta ${t.trabado ? 'etiqueta-alerta' : ''}" title="${t.veces} consulta(s)">${t.tema}${t.trabado ? ' · le costó' : ''}</span>`)}</div>`) : ''}
   </section>`;
 }

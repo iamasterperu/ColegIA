@@ -384,3 +384,7 @@ th select { min-width: 140px; margin-top: 4px; }
 
 .sesion-previa { background: var(--superficie-2); border-radius: 12px; padding: 12px; margin: 0 0 12px; display: grid; gap: 8px; }
 .sesion-previa p { margin: 0; }
+.cuenta-datos { max-width: 460px; }
+.cuenta-cab { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.cuenta-cab span { display: block; }
+.btn-peligro { background: #dc2626; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; font: inherit; font-weight: 700; width: 100%; cursor: pointer; }

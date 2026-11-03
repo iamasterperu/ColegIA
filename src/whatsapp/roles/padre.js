@@ -10,7 +10,7 @@ export const menuPadre = (persona, colegio) =>
   `Hola ${persona.nombre} 👋, soy el asistente de WhatsApp de *${colegio.nombre}*.\n` +
   'Escríbeme o mándame un audio. Por ejemplo:\n' +
   '1️⃣ Pagos y deudas\n2️⃣ Cómo pagar\n3️⃣ Lista de útiles\n4️⃣ Notas\n5️⃣ Asistencia\n' +
-  '6️⃣ Justificar una falta ("mañana Mateo no irá por cita médica")\n7️⃣ Hablar con secretaría\n8️⃣ Mis datos y autorizaciones\n9️⃣ Tutor IA para mi hijo\n\n' +
+  '6️⃣ Justificar una falta ("mañana Mateo no irá por cita médica")\n7️⃣ Hablar con secretaría\n8️⃣ Mis datos y autorizaciones\n9️⃣ Tutor virtual para mi hijo\n\n' +
   '📸 ¿Ya pagaste? Mándame la foto del voucher de Yape o transferencia.\nEscribe *BAJA* si no deseas recibir mensajes.';
 
 export async function hijosDe(env, apoderadoId, hijoId = null) {
@@ -134,7 +134,7 @@ async function respuestaCurso(env, colegio, hijos, consulta) {
       `SELECT tema, MAX(trabado) AS trabado FROM tutor_temas WHERE alumno_id = ? AND creado_en > datetime('now', '-30 days')
         GROUP BY tema ORDER BY COUNT(*) DESC LIMIT 3`,
     ).bind(h.id).all();
-    if (tutor.length) texto += `\n🤖 Practicó con el tutor IA: ${tutor.map((t) => t.tema + (t.trabado ? ' (le costó)' : '')).join(', ')}.`;
+    if (tutor.length) texto += `\n🧠 Practicó con el tutor virtual: ${tutor.map((t) => t.tema + (t.trabado ? ' (le costó)' : '')).join(', ')}.`;
     partes.push(texto);
   }
   return partes.join('\n\n') + '\n\nSi quieres conversar con su profesor, escribe *HABLAR CON SECRETARÍA*.';
@@ -203,7 +203,7 @@ async function activarTutor(env, colegio, persona, hijos, texto) {
   const tel = normalizarTelefono((texto.match(/(\+?\d[\d\s-]{7,14}\d)/) || [])[1]);
   const hijo = hijos.length === 1 ? hijos[0] : hijos.find((h) => normalizarTexto(texto).includes(normalizarTexto(h.nombres.split(' ')[0])));
   if (!tel || !hijo) {
-    return { texto: `🧠 *Tutor IA*: tu hijo(a) puede practicar por WhatsApp con un tutor que lo guía con preguntas y *no le da la respuesta*. Su profesor ve en qué temas necesita ayuda.\n\nPara activarlo escribe: *tutor ${hijos[0].nombres.split(' ')[0]} 9XXXXXXXX* (el celular de tu hijo).\n${FINALIDADES.tutor_ia.texto.replaceAll('{colegio}', colegio.nombre)}` };
+    return { texto: `🧠 *Tutor virtual*: tu hijo(a) puede practicar por WhatsApp con un tutor que lo guía con preguntas y *no le da la respuesta*. Su profesor ve en qué temas necesita ayuda.\n\nPara activarlo escribe: *tutor ${hijos[0].nombres.split(' ')[0]} 9XXXXXXXX* (el celular de tu hijo).\n${FINALIDADES.tutor_ia.texto.replaceAll('{colegio}', colegio.nombre)}` };
   }
   await env.DB.batch([
     env.DB.prepare('UPDATE alumnos SET telefono = ? WHERE id = ?').bind(tel, hijo.id),
@@ -211,7 +211,7 @@ async function activarTutor(env, colegio, persona, hijos, texto) {
       .bind(colegio.id, persona.apoderado.id, hijo.id, FINALIDADES.tutor_ia.version),
     auditoria(env, colegio, persona, 'activar_tutor_ia', 'alumno', hijo.id),
   ]);
-  return { texto: `✅ Tutor IA activado para *${hijo.nombres}*. Dile que escriba "hola" a este mismo número desde su celular (+${tel}). Puedes desactivarlo escribiendo *BAJA TUTOR*.` };
+  return { texto: `✅ Tutor virtual activado para *${hijo.nombres}*. Dile que escriba "hola" a este mismo número desde su celular (+${tel}). Puedes desactivarlo escribiendo *BAJA TUTOR*.` };
 }
 
 const normalizarTexto = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();

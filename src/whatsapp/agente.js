@@ -32,7 +32,7 @@ const introDemo = (colegio) =>
   '• *CONTADORA* — cobranza, vouchers, registrar pagos\n' +
   '• *SECRETARIA* — fotos de listas y fichas, avisos, bandeja\n' +
   '• *PADRE* — pagos, notas, útiles que faltan, justificar faltas\n' +
-  '• *ALUMNO* — tutor de IA que no da la respuesta\n' +
+  '• *ALUMNO* — tutor virtual que no da la respuesta\n' +
   '• *FAMILIA* — una familia interesada pregunta por pensiones y agenda una visita\n\n' +
   'Para cambiar después, escribe *CAMBIAR ROL*. Los datos son ficticios.';
 
@@ -121,9 +121,9 @@ export async function procesarEntrante(env, conexion, entrada) {
     return responder('🎧 Recibimos tu audio. Una persona del colegio lo escuchará y te responderá pronto.', { porAtender: true });
   }
 
-  // ---- Alumno: tutor IA (requiere autorización del apoderado) ----
+  // ---- Alumno: tutor virtual (requiere autorización del apoderado) ----
   if (persona.rol === 'alumno') {
-    if (!persona.autorizado) return responder(`Hola ${persona.nombre} 👋. Para usar el tutor de IA, tu papá, mamá o apoderado debe activarlo escribiendo "tutor" a este número.`);
+    if (!persona.autorizado) return responder(`Hola ${persona.nombre} 👋. Para usar el tutor virtual, tu papá, mamá o apoderado debe activarlo escribiendo "tutor" a este número.`);
     const r = await responderAlumno(env, colegio, persona, { texto, imagen: entrada.imagen, telefono: tel });
     return responder(r.texto);
   }
@@ -136,7 +136,7 @@ export async function procesarEntrante(env, conexion, entrada) {
       await env.DB.batch(hijos.map((h) => env.DB.prepare(
         "INSERT INTO consentimientos (colegio_id, apoderado_id, alumno_id, finalidad, otorgado, version_texto, medio) VALUES (?, ?, ?, 'tutor_ia', 0, ?, 'whatsapp')",
       ).bind(colegio.id, persona.apoderado.id, h.id, FINALIDADES.tutor_ia.version)));
-      return responder('Listo, desactivamos el tutor de IA para tus hijos.');
+      return responder('Listo, desactivamos el tutor virtual para tus hijos.');
     }
     if (r.intencion === 'baja') {
       await registrarConsentimientoWa(env, colegio, persona.apoderado.id, hijos, false);

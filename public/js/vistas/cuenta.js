@@ -1,22 +1,29 @@
+// Mi cuenta: los datos de la persona tal como los registró el colegio, y cerrar sesión.
+// No hay contraseña que cambiar: se entra con DNI y celular desde este celular.
 import { api } from '../api.js';
-import { html, $, aviso, conBoton } from '../ui.js';
+import { html, crudo } from '../ui.js';
 
 export async function mostrar(vista, _, sesion) {
+  const u = sesion.usuario;
+  const fila = (t, v) => (v ? html`<div><dt>${t}</dt><dd>${v}</dd></div>` : '');
+  let hijos = [];
+  if (u.rol === 'padre') hijos = await api.get('/api/chat/hijos').catch(() => []);
   vista.innerHTML = html`
-    <div class="encabezado"><div><h1>Mi cuenta</h1><p>${sesion.usuario.nombre} · ${sesion.usuario.email} · ${sesion.usuario.rol_nombre}</p></div></div>
-    <section class="tarjeta" style="max-width:460px"><h2>Cambiar contraseña</h2>
-      <form class="form" id="f-clave">
-        <label>Contraseña actual<input type="password" name="actual" autocomplete="current-password" required></label>
-        <label>Nueva contraseña<input type="password" name="nueva" autocomplete="new-password" minlength="8" required></label>
-        <p class="pequeno" style="margin:0">Mínimo 8 caracteres, con letras y números. Se cerrarán tus otras sesiones.</p>
-        <button class="btn btn-primario">Guardar</button>
-      </form></section>`;
-  $('#f-clave', vista).addEventListener('submit', async (e) => {
-    e.preventDefault();
-    await conBoton($('.btn-primario', e.target), async () => {
-      await api.post('/api/cambiar-clave', Object.fromEntries(new FormData(e.target)));
-      aviso('Contraseña actualizada');
-      e.target.reset();
-    });
+    <div class="encabezado"><div><h1>Mi cuenta</h1></div></div>
+    <section class="tarjeta cuenta-datos"><div class="cuenta-cab"><div class="hijo-ini">${u.nombre[0]}</div>
+      <div><strong>${u.nombre}</strong><span class="pequeno">${u.rol_nombre} · ${sesion.colegio.nombre}</span></div></div>
+      <dl class="datos">
+        ${crudo(fila('DNI', u.dni))}
+        ${crudo(fila('Celular', u.telefono ? `+${u.telefono}` : ''))}
+        ${crudo(fila('Correo', u.email))}
+        ${crudo(fila('Secciones', (u.secciones || []).map((s) => `${s.grado} ${s.seccion}`).join(', ')))}
+        ${crudo(fila('Hijos', hijos.map((h) => `${h.nombres.split(' ')[0]} (${h.grado || ''} ${h.seccion || ''})`).join(', ')))}
+      </dl>
+      <p class="pequeno">Estos datos los registró el colegio. Si alguno está mal, pídele a secretaría que lo corrija.</p>
+      <button class="btn btn-peligro" id="cerrar-sesion" type="button">Cerrar sesión</button>
+    </section>`;
+  vista.querySelector('#cerrar-sesion').addEventListener('click', async () => {
+    await api.post('/api/logout').catch(() => {});
+    location.href = '/entrar';
   });
 }

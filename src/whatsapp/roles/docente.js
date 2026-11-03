@@ -11,7 +11,7 @@ import { auditoria, buscarAlumnos, apoderadosConPermiso } from '../comun.js';
 import { resolverAlumno } from './personal.js';
 import { notasPorTexto, asistenciaAula } from './registro.js';
 
-const SIN_IA = '⚠️ La inteligencia artificial no está activada en este momento. Inténtalo en unos minutos.';
+const SIN_IA = '⚠️ El asistente no está disponible en este momento. Inténtalo en unos minutos.';
 const pct = (x) => `${Math.round(x * 100)}%`;
 
 async function conIA(fn) {
@@ -133,7 +133,7 @@ async function temasTutor(env, colegio, persona) {
     `SELECT t.tema, t.curso, COUNT(*) n, SUM(t.trabado) trabados, COUNT(DISTINCT t.alumno_id) alumnos FROM tutor_temas t JOIN alumnos a ON a.id = t.alumno_id
       WHERE t.colegio_id = ? AND t.creado_en >= datetime('now', '-14 days') AND ${al.sql} GROUP BY t.tema ORDER BY trabados DESC, n DESC LIMIT 10`,
   ).bind(colegio.id, ...al.params).all();
-  return { texto: results.length ? '🧠 *Tutor IA — últimos 14 días*\n' + results.map((r) => `• ${r.tema}${r.curso ? ` (${r.curso})` : ''}: ${r.alumnos} alumno(s), se trabaron ${r.trabados} vez/veces`).join('\n') : 'Tus alumnos aún no usan el tutor IA en los últimos 14 días.' };
+  return { texto: results.length ? '🧠 *Tutor virtual — últimos 14 días*\n' + results.map((r) => `• ${r.tema}${r.curso ? ` (${r.curso})` : ''}: ${r.alumnos} alumno(s), se trabaron ${r.trabados} vez/veces`).join('\n') : 'Tus alumnos aún no usan el tutor virtual en los últimos 14 días.' };
 }
 
 export async function riesgo(env, colegio, persona) {

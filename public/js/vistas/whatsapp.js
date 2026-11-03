@@ -39,7 +39,7 @@ export async function mostrar(vista, [telInicial]) {
     <div class="encabezado"><div><h1>WhatsApp</h1>
       <p>${real ? 'Conectado a WhatsApp Cloud API. El chat de prueba sigue siendo simulado.' : 'Modo simulado: nada sale a WhatsApp real. Prueba el agente escribiendo como un padre o como alguien del personal.'}</p></div>
       ${puede('ajustes.editar') ? crudo('<a class="btn" href="#/ajustes">Conectar WhatsApp real</a>') : ''}</div>
-    <p class="nota-legal" style="margin-bottom:12px">Cada persona recibe su propio menú: dirección (resumen, deuda por aula, alertas, comunicados), profesores (exámenes A/B en PDF, sesiones, radar, faltas), contabilidad (cobranza, vouchers), secretaría (fotos de listas y fichas, Excel, avisos), padres (pagos, notas, útiles que faltan, justificar) y alumnos (tutor IA). Elige a alguien y escribe "hola"; con 📎 envías fotos o Excel.</p>
+    <p class="nota-legal" style="margin-bottom:12px">Cada persona recibe su propio menú: dirección (resumen, deuda por aula, alertas, comunicados), profesores (exámenes A/B en PDF, sesiones, radar, faltas), contabilidad (cobranza, vouchers), secretaría (fotos de listas y fichas, Excel, avisos), padres (pagos, notas, útiles que faltan, justificar) y alumnos (tutor virtual). Elige a alguien y escribe "hola"; con 📎 envías fotos o Excel.</p>
     <div class="wa">
       <aside class="wa-lista">
         <div class="wa-lista-cab">
@@ -173,7 +173,7 @@ async function abrirChat(caja, telefono, contacto) {
     if (archivo.size > 1_500_000) return aviso('El archivo pesa más de 1,5 MB', 'error');
     const b64 = await new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(archivo); });
     const pie = $('[name=texto]', caja);
-    aviso(archivo.type.startsWith('image/') ? 'Enviando foto… la IA la está leyendo' : 'Enviando archivo…');
+    aviso(archivo.type.startsWith('image/') ? 'Enviando foto… el asistente la está leyendo' : 'Enviando archivo…');
     try {
       await enviarSimulado({ archivo_b64: b64, mime: archivo.type || 'application/octet-stream', nombre: archivo.name, texto: pie.value.trim() });
       pie.value = '';

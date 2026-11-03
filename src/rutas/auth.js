@@ -98,12 +98,19 @@ export function rutasAuth(r) {
     exigir(ctx);
     const c = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
     const u = ctx.usuario;
+    const yo = await env.DB.prepare(
+      `SELECT u.dni, u.telefono, u.email, ap.dni AS ap_dni, ap.telefono AS ap_telefono FROM usuarios u LEFT JOIN apoderados ap ON ap.id = u.apoderado_id WHERE u.id = ?`,
+    ).bind(u.id).first();
+    const correoPropio = yo?.email && !/\.(familia|personal)$/.test(yo.email) ? yo.email : null;
     let secciones = [];
     if (u.rol === 'profesor') {
       secciones = (await env.DB.prepare('SELECT grado, seccion, curso FROM profesor_secciones WHERE usuario_id = ?').bind(u.id).all()).results;
     }
     return json({
-      usuario: { id: u.id, nombre: u.nombre, email: u.email, rol: u.rol, rol_nombre: ROLES[u.rol], secciones },
+      usuario: {
+        id: u.id, nombre: u.nombre, email: correoPropio, rol: u.rol, rol_nombre: ROLES[u.rol], secciones,
+        dni: u.rol === 'padre' ? yo?.ap_dni : yo?.dni, telefono: u.rol === 'padre' ? yo?.ap_telefono : yo?.telefono,
+      },
       permisos: PERMISOS[u.rol],
       colegio: { ...colegioPublico(c), wa_modo: c.wa_modo },
       finalidades: Object.fromEntries(

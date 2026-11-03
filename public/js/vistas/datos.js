@@ -115,7 +115,7 @@ function guia(caja) {
     ['Registro de quién ve qué', 'Cada búsqueda, ficha abierta, audio escuchado, envío y cambio queda en el registro de accesos. Los padres ven quién abrió la ficha de su hijo.'],
     ['Derechos ARCO', 'Los padres envían solicitudes desde el portal y descargan sus datos. Dirección puede anonimizar al alumno (cancelación).'],
     ['Seguridad', 'Contraseñas con PBKDF2, sesión de 8 h en cookie segura, bloqueo tras 5 intentos, tokens de WhatsApp cifrados con AES-GCM, HTTPS y cabeceras de seguridad.'],
-    ['Flujo transfronterizo', 'Cloudflare y Meta (WhatsApp) procesan datos fuera del Perú: se informa en el aviso de privacidad y en el texto de autorización.'],
+    ['Flujo transfronterizo', 'Los proveedores de tecnología del colegio procesan datos fuera del Perú: se informa en el aviso de privacidad y en el texto de autorización.'],
     ['Banco de datos', c.registro_banco_datos ? `Inscripción registrada: ${c.registro_banco_datos}` : 'Pendiente: inscribe el banco de datos "Alumnos y apoderados" ante la Autoridad Nacional de Protección de Datos Personales y anota el número en Ajustes.'],
   ];
   caja.innerHTML = html`<div class="tabla-caja"><table><thead><tr><th>Obligación</th><th>Cómo lo cumple ColegIA</th></tr></thead>

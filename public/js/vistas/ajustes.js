@@ -79,7 +79,7 @@ export async function mostrar(vista) {
         <div class="acciones">
           <button type="button" class="btn" id="probar" ${c.wa_tiene_token ? '' : 'disabled'}>Probar conexión</button>
           ${c.wa_tiene_token ? crudo('<label class="check"><input type="checkbox" name="borrar_credenciales"> Borrar credenciales guardadas</label>') : ''}
-          <span class="pequeno">Transcripción de audios reales: ${c.ai_configurada ? 'Workers AI activo' : 'desactivada (ver README)'}</span>
+          <span class="pequeno">Transcripción de audios reales: ${c.ai_configurada ? 'activa' : 'desactivada (ver README)'}</span>
         </div>
         <details><summary><strong>Paso a paso para conectar WhatsApp Cloud API</strong></summary>
           <ol class="pequeno">

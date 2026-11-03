@@ -33,7 +33,7 @@ export async function alumnosEnRiesgo(env, colegioId, alcance = { sql: '1 = 1', 
   const bajas = new Map();
   for (const n of notas) if (esNotaBaja(n.nota)) bajas.set(n.id, [...(bajas.get(n.id) || []), n.curso]);
   for (const [id, cursos] of bajas) if (cursos.length >= UMBRALES.notasBajas) agregar(id, `notas bajas en ${cursos.join(', ')}`);
-  for (const t of trabados) agregar(t.id, `se trabó ${t.n} veces con el tutor IA (${String(t.temas).split(',').slice(0, 3).join(', ')})`);
+  for (const t of trabados) agregar(t.id, `se trabó ${t.n} veces con el tutor virtual (${String(t.temas).split(',').slice(0, 3).join(', ')})`);
   for (const e of examenes) {
     const total = JSON.parse(e.contenido || '{}').preguntas?.length || 0;
     if (e.sin_detalle) { if (e.porcentaje != null && e.porcentaje < (1 - UMBRALES.errorExamen) * 100) agregar(e.id, `sacó ${Math.round(e.porcentaje)}% en "${e.titulo}"`); continue; }
