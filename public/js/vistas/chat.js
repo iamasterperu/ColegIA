@@ -4,6 +4,16 @@ import { html, crudo, $, aviso, fecha } from '../ui.js';
 import { sesion } from '../app.js';
 
 const MAX_SEGUNDOS = 60;
+// D1 guarda en UTC; se muestra en hora de Lima
+const aLima = (iso) => new Date(`${String(iso).replace(' ', 'T')}Z`);
+const hora = (iso) => aLima(iso).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Lima' });
+const dia = (iso) => {
+  const d = (x) => x.toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  const f = aLima(iso);
+  if (d(f) === d(new Date())) return 'Hoy';
+  if (d(f) === d(new Date(Date.now() - 86400000))) return 'Ayer';
+  return f.toLocaleDateString('es-PE', { day: 'numeric', month: 'long', timeZone: 'America/Lima' });
+};
 let sondeo = null;
 
 const enlazar = (t) => t.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
@@ -19,7 +29,7 @@ function burbuja(m) {
   return html`<div class="cb ${mio ? 'cb-mio' : 'cb-bot'}" data-id="${m.id}">
     ${cuerpo}
     ${mio ? '' : crudo(html`<button class="cb-leer" data-leer="${m.texto || ''}" title="Escuchar" aria-label="Escuchar respuesta">🔊</button>`)}
-    <time>${fecha(m.creado_en, true)}</time></div>`;
+    <time>${hora(m.creado_en)}${mio ? crudo('<span class="tic" aria-label="leído">✓✓</span>') : ''}</time></div>`;
 }
 
 export async function mostrar(vista) {
@@ -42,14 +52,21 @@ export async function mostrar(vista) {
   const form = $('#chat-form', vista);
   const caja = form.texto;
   let ultimo = 0;
+  let ultimoDia = '';
 
   const agregar = (ms) => {
     ms = ms.filter((m) => m.id > ultimo);
     if (!ms.length) return;
     lista.querySelector('.chat-vacio')?.remove();
-    lista.insertAdjacentHTML('beforeend', ms.map(burbuja).join(''));
+    lista.insertAdjacentHTML('beforeend', ms.map((m) => {
+      const d = dia(m.creado_en);
+      const sep = d !== ultimoDia ? `<div class="cb-dia">${d}</div>` : '';
+      ultimoDia = d;
+      return sep + burbuja(m);
+    }).join(''));
     ultimo = Math.max(ultimo, ...ms.map((m) => m.id));
     lista.scrollTop = lista.scrollHeight;
+    window.dispatchEvent(new Event('colegia:leido'));
   };
   const pensando = (si) => {
     lista.querySelector('.cb-pensando')?.remove();

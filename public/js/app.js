@@ -182,7 +182,7 @@ function armarMarco() {
           <div><strong>${colegio.nombre}</strong><span>ColegIA</span></div>
         </div>
         <nav aria-label="Menú principal">
-          ${items.map((m) => html`<a href="#/${m.ruta}" data-ruta="${m.ruta}">${crudo(icono(m.icono))}<span>${m.texto}</span></a>`)}
+          ${items.map((m) => html`<a href="#/${m.ruta}" data-ruta="${m.ruta}">${crudo(icono(m.icono))}<span>${m.texto}</span>${m.ruta === 'chat' ? crudo('<b class="insignia" id="ins-chat" hidden></b>') : ''}</a>`)}
         </nav>
         <div class="lateral-pie">
           <div class="usuario"><strong>${usuario.nombre}</strong><span>${usuario.rol_nombre}</span></div>
@@ -191,7 +191,7 @@ function armarMarco() {
       </aside>
       <div class="contenido">
         <header class="barra">
-          <button class="btn-menu" id="abrir-menu" aria-label="Abrir menú">☰</button>
+          <button class="btn-menu" id="abrir-menu" aria-label="Abrir menú">☰<b class="insignia insignia-menu" id="ins-menu" hidden></b></button>
           <span class="barra-titulo" id="barra-titulo"></span>
           ${colegio.es_demo ? html`<span class="etiqueta etiqueta-demo">Demo</span>` : ''}
           ${puede('whatsapp.ver') && colegio.wa_modo === 'cloud' ? html`<span class="etiqueta ${colegio.wa_modo === 'cloud' ? 'etiqueta-ok' : ''}">WhatsApp: ${colegio.wa_modo === 'cloud' ? 'conectado' : 'simulado'}</span>` : ''}
@@ -205,6 +205,29 @@ function armarMarco() {
     pantallaIngreso();
   });
   $('#abrir-menu').addEventListener('click', () => $('#lateral').classList.toggle('abierto'));
+  iniciarInsignia();
+}
+
+// Contador de mensajes sin leer del chat (como en WhatsApp): en el menú, en el título y en el ícono de la app
+let temporizadorInsignia = null;
+function pintarInsignia(n) {
+  for (const id of ['ins-chat', 'ins-menu']) {
+    const b = document.getElementById(id);
+    if (b) { b.textContent = n > 99 ? '99+' : String(n); b.hidden = n < 1; }
+  }
+  document.title = n > 0 ? `(${n}) ColegIA` : 'ColegIA';
+  try { if (n > 0) navigator.setAppBadge?.(n); else navigator.clearAppBadge?.(); } catch { /* sin soporte */ }
+}
+async function actualizarInsignia() {
+  if (!sesion.usuario) return;
+  try { pintarInsignia(location.hash.startsWith('#/chat') && !document.hidden ? 0 : (await api.get('/api/chat/no-leidos')).n); } catch { /* sin conexión */ }
+}
+function iniciarInsignia() {
+  clearInterval(temporizadorInsignia);
+  temporizadorInsignia = setInterval(() => { if (!document.hidden) actualizarInsignia(); }, 30000);
+  window.addEventListener('colegia:leido', () => pintarInsignia(0));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) actualizarInsignia(); });
+  actualizarInsignia();
 }
 
 let rutaActual = null;

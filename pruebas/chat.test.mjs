@@ -1,8 +1,9 @@
 import { crearDB } from './d1shim.mjs';
 import { rutasChat } from '../src/rutas/chat.js';
+import { enviar } from '../src/whatsapp/envio.js';
 import assert from 'node:assert/strict';
 
-const DB = crearDB(['migrations/0000_esquema_base.sql', 'migrations/0001_admision_informes_demo.sql']);
+const DB = crearDB(['migrations/0000_esquema_base.sql', 'migrations/0001_admision_informes_demo.sql', 'migrations/0008_chat_leido.sql']);
 const env = { DB };
 DB._raw.exec(`INSERT INTO colegios (id, slug, nombre, es_demo) VALUES (1,'demo','Colegio Demo',1),(2,'real','Colegio Real',0)`);
 DB._raw.exec(`INSERT INTO apoderados (id, colegio_id, nombres, apellidos, telefono) VALUES (1,2,'Rosa','Quispe','911111111');
@@ -33,4 +34,12 @@ r = await leer(await rutas['POST /api/chat'](ctx({ id: 3, colegio_id: 2, rol: 'p
 assert.ok(r.mensajes.length >= 2, 'profesor sin celular también chatea');
 // sin sesión
 await assert.rejects(() => rutas['GET /api/chat/historial']({ usuario: null, url: new URL('https://x.pe/') }, env), /Inicia sesión/);
+// buzón: un recordatorio enviado al apoderado aparece en su chat como "sin leer"
+await enviar(env, { colegio: { id: 2, wa_modo: 'simulado' }, modo: 'simulado', numerosPrueba: [] }, { telefono: '51911111111', apoderadoId: 1, texto: 'Recordatorio: la pensión vence mañana', motivo: 'recordatorio' });
+const nl = async (u) => (await (await rutas['GET /api/chat/no-leidos'](ctx(u), env)).json()).n;
+const rosa = { id: 2, colegio_id: 2, rol: 'padre' };
+assert.equal(await nl(rosa), 1, 'un aviso sin leer');
+const hh = await leer(await rutas['GET /api/chat/historial'](ctx(rosa), env));
+assert.ok(hh.some((m) => /pensión vence/.test(m.texto)), 'el aviso está en su chat');
+assert.equal(await nl(rosa), 0, 'al abrir el chat queda leído');
 console.log('OK chat');

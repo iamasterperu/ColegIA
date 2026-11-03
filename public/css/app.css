@@ -317,3 +317,29 @@ th select { min-width: 140px; margin-top: 4px; }
 .chat-entrada { display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); align-items: flex-end; flex: none; }
 .chat-entrada textarea { flex: 1; resize: none; border-radius: 22px; padding: 10px 14px; font: inherit; border: 1px solid var(--borde); background: var(--superficie); color: inherit; max-height: 140px; }
 @media (max-width: 760px) { .chat-app { height: calc(100dvh - 52px); } }
+
+/* ---------- Estilo WhatsApp ---------- */
+.insignia { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: auto; border-radius: 999px; background: #25d366; color: #fff; font-size: .72rem; font-weight: 700; line-height: 1; }
+.insignia[hidden] { display: none; }
+.lateral nav a { align-items: center; }
+.insignia-menu { position: absolute; top: -4px; right: -4px; margin: 0; min-width: 18px; height: 18px; }
+.btn-menu { position: relative; }
+:root { --wa-mio: #d9fdd3; --wa-mio-t: #111b21; --wa-bot: #ffffff; --wa-bot-t: #111b21; --wa-verde: #00a884; --wa-barra: #f0f2f5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --wa-mio: #005c4b; --wa-mio-t: #e9edef; --wa-bot: #202c33; --wa-bot-t: #e9edef; --wa-barra: #202c33; } }
+.chat-app { background: var(--chat-fondo); background-image: radial-gradient(rgba(0,0,0,.045) 1px, transparent 1px); background-size: 18px 18px; box-shadow: 0 0 0 1px var(--borde); }
+.chat-msgs { gap: 4px; padding: 12px 10px; }
+.cb { border-radius: 9px; padding: 6px 9px 4px 10px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); max-width: min(82%, 520px); margin-top: 2px; }
+.cb-mio { background: var(--wa-mio); color: var(--wa-mio-t); border-top-right-radius: 0; }
+.cb-bot { background: var(--wa-bot); color: var(--wa-bot-t); border-top-left-radius: 0; padding-right: 26px; }
+.cb time { display: block; text-align: right; margin: 2px 0 0 10px; font-size: .68rem; color: #667781; }
+.cb-mio time { color: #667781; opacity: 1; }
+.cb .tic { color: #53bdeb; letter-spacing: -3px; margin-left: 3px; font-weight: 700; }
+.cb-bot .cb-leer { top: 3px; bottom: auto; right: 4px; }
+.cb-dia { align-self: center; background: #fff; color: #54656f; font-size: .72rem; padding: 4px 11px; border-radius: 8px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); margin: 8px 0 4px; }
+.cb-aviso { border-left: 3px solid var(--wa-verde); }
+.chat-sug { background: transparent; }
+.chip { background: var(--wa-bot); color: var(--wa-verde); border-color: transparent; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); }
+.chat-entrada { background: var(--wa-barra); }
+.chat-entrada textarea { background: var(--wa-bot); border: 0; color: var(--wa-bot-t); }
+.chat-entrada .btn-redondo { background: transparent; border: 0; box-shadow: none; color: #54656f; }
+.chat-entrada .btn-primario { background: var(--wa-verde); color: #fff; }

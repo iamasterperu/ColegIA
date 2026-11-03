@@ -4,6 +4,7 @@
 import { json, cuerpo, falla, entero } from '../lib/http.js';
 import { exigir } from '../lib/sesion.js';
 import { procesarEntrante } from '../whatsapp/agente.js';
+import { lineaInterna } from '../lib/buzon.js';
 
 const MAX_AUDIO = 700_000;
 const MAX_ARCHIVO = 1_500_000;
@@ -31,7 +32,7 @@ async function lineaDe(env, ctx, colegio) {
       WHERE u.id = ? AND u.colegio_id = ? AND u.activo = 1`,
   ).bind(ctx.usuario.id, ctx.colegioId).first();
   if (!u) throw falla(401, 'Sesión no válida');
-  const telefono = `51988${String(u.id).padStart(6, '0')}`;
+  const telefono = lineaInterna(u.id);
   let persona;
   if (u.rol === 'padre') {
     if (!u.apoderado_id) throw falla(400, 'Tu cuenta aún no está vinculada a un apoderado. Pide a secretaría que lo vincule.');
@@ -49,7 +50,20 @@ async function lineaDe(env, ctx, colegio) {
   return { telefono, persona };
 }
 
+const marcarLeido = (env, ctx, tel) => env.DB.prepare(
+  'UPDATE usuarios SET chat_leido_id = COALESCE((SELECT MAX(id) FROM mensajes WHERE colegio_id = ? AND telefono = ?), chat_leido_id) WHERE id = ?',
+).bind(ctx.colegioId, tel, ctx.usuario.id).run();
+
 export function rutasChat(r) {
+  // Contador de "sin leer" (como en WhatsApp): avisos y recordatorios que llegaron al chat
+  r.get('/api/chat/no-leidos', async (ctx, env) => {
+    exigir(ctx);
+    const f = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM mensajes m JOIN usuarios u ON u.id = ? WHERE m.colegio_id = ? AND m.telefono = ? AND m.sentido = 'saliente' AND m.id > u.chat_leido_id`,
+    ).bind(ctx.usuario.id, ctx.colegioId, lineaInterna(ctx.usuario.id)).first();
+    return json({ n: f?.n || 0 });
+  });
+
   r.get('/api/chat/historial', async (ctx, env) => {
     exigir(ctx);
     const colegio = await env.DB.prepare('SELECT * FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
@@ -59,6 +73,7 @@ export function rutasChat(r) {
       `SELECT id, sentido, tipo, texto, transcripcion, motivo, creado_en FROM mensajes
         WHERE colegio_id = ? AND telefono = ? AND id > ? ORDER BY id DESC LIMIT 80`,
     ).bind(ctx.colegioId, tel, despues).all();
+    await marcarLeido(env, ctx, tel);
     return json(results.reverse());
   });
 
@@ -103,6 +118,7 @@ export function rutasChat(r) {
       `SELECT id, sentido, tipo, texto, transcripcion, motivo, creado_en FROM mensajes
         WHERE colegio_id = ? AND telefono = ? AND id > ? ORDER BY id`,
     ).bind(ctx.colegioId, telefono, entero(d.despues, 0)).all();
+    await marcarLeido(env, ctx, telefono);
     return json({ mensajes: results });
   });
 }

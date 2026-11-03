@@ -1,5 +1,6 @@
 // Envío de WhatsApp: modo simulado (queda en el chat de prueba) o WhatsApp Cloud API.
 import { descifrar } from '../lib/cripto.js';
+import { copiarAlBuzon } from '../lib/buzon.js';
 
 export const versionGraph = (env) => env.WA_GRAPH_VERSION || 'v23.0';
 
@@ -87,5 +88,6 @@ export async function enviar(env, conexion, mensaje) {
   ).bind(c.id, mensaje.telefono, mensaje.apoderadoId ?? null, mensaje.usuarioId ?? null, tipo,
     mensaje.documento ? `📄 ${mensaje.documento.nombre}\n${mensaje.documento.url}\n${mensaje.texto}` : mensaje.texto, canal, mensaje.motivo || 'manual',
     estado, error, waId, mensaje.enviadoPor ?? null).first();
+  await copiarAlBuzon(env, c.id, mensaje, mensaje.documento ? `📄 ${mensaje.documento.nombre}\n${mensaje.documento.url}\n${mensaje.texto}` : mensaje.texto);
   return { id: fila.id, canal, estado, error };
 }

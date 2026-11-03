@@ -1,0 +1,1 @@
+ALTER TABLE usuarios ADD COLUMN chat_leido_id INTEGER NOT NULL DEFAULT 0;
