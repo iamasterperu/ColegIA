@@ -30,10 +30,11 @@ export async function mostrar(vista) {
   $('#nuevo', vista).addEventListener('click', () => {
     const { raiz, cerrar } = modal(html`<h2>Nuevo usuario</h2>
       <form class="form" id="f-u">
-        <div class="form-fila"><label>Nombre<input name="nombre" required></label><label>Correo<input type="email" name="email" required></label></div>
+        <div class="form-fila"><label>Nombre<input name="nombre" required></label><label>Correo (opcional)<input type="email" name="email"></label></div>
         <div class="form-fila"><label>Rol<select name="rol">${Object.entries(ROL_NOMBRE).filter(([k]) => k !== 'sistema').map(([k, t]) => html`<option value="${k}">${t}</option>`)}</select></label>
           <label>Contraseña (opcional: si la dejas vacía, se genera un enlace para que la persona cree la suya)<input name="clave" minlength="8" placeholder="mín. 8, letras y números"></label></div>
-        <label class="extra-cel">Celular para WhatsApp<input name="telefono" inputmode="tel" placeholder="987 654 321"></label>
+        <label class="extra-cel">DNI (con el DNI y el celular la persona entra a la app)<input name="dni" inputmode="numeric" placeholder="8 dígitos"></label>
+        <label class="extra-cel">Celular<input name="telefono" inputmode="tel" placeholder="987 654 321"></label>
         <label class="extra" data-rol="profesor">Secciones (separadas por coma)<input name="secciones" placeholder="3° Primaria A, 3° Primaria B"></label>
         <label class="extra" data-rol="padre">DNI del apoderado registrado<input name="apoderado_dni" inputmode="numeric"></label>
         <p class="pequeno" id="desc-rol"></p>
@@ -95,7 +96,7 @@ export async function mostrar(vista) {
     const { raiz, cerrar } = modal(html`<h2>${u.nombre}</h2><p class="pequeno">${ROL_NOMBRE[u.rol]} · ${u.email}</p>
       <form class="form" id="f-e">
         <label class="check"><input type="checkbox" name="activo" ${u.activo ? 'checked' : ''}> Usuario activo</label>
-        ${u.rol !== 'padre' ? crudo(html`<label>Celular para WhatsApp<input name="telefono" value="${u.telefono || ''}" inputmode="tel"></label>`) : ''}
+        ${u.rol !== 'padre' ? crudo(html`<label>DNI<input name="dni" value="${u.dni || ''}" inputmode="numeric"></label><label>Celular<input name="telefono" value="${u.telefono || ''}" inputmode="tel"></label>`) : ''}
         ${u.rol === 'profesor' ? crudo(html`<label>Secciones<input name="secciones" value="${u.secciones || ''}"></label>`) : ''}
         <label>Nueva contraseña (opcional)<input name="clave" minlength="8" autocomplete="new-password"></label>
         <button class="btn btn-primario">Guardar</button>
@@ -107,6 +108,7 @@ export async function mostrar(vista) {
       if (f.clave.value) datos.clave = f.clave.value;
       if (f.secciones) datos.secciones = f.secciones.value;
       if (f.telefono) datos.telefono = f.telefono.value;
+      if (f.dni) datos.dni = f.dni.value;
       await conBoton($('.btn-primario', f), async () => {
         await api.put(`/api/usuarios/${u.id}`, datos);
         aviso('Usuario actualizado');

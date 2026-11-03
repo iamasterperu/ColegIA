@@ -17,7 +17,7 @@ export function rutasAdmin(r) {
   r.get('/api/usuarios', async (ctx, env) => {
     exigir(ctx, 'usuarios.gestionar');
     const { results } = await env.DB.prepare(
-      `SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.ultimo_acceso, u.apoderado_id, u.telefono,
+      `SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.ultimo_acceso, u.apoderado_id, u.telefono, u.dni,
               (SELECT GROUP_CONCAT(grado || ' ' || seccion, ', ') FROM profesor_secciones ps WHERE ps.usuario_id = u.id) AS secciones
          FROM usuarios u WHERE u.colegio_id = ? ORDER BY u.rol, u.nombre`,
     ).bind(ctx.colegioId).all();
@@ -27,7 +27,10 @@ export function rutasAdmin(r) {
   r.post('/api/usuarios', async (ctx, env) => {
     exigir(ctx, 'usuarios.gestionar');
     const d = await cuerpo(ctx.request, 5000);
-    const email = String(d.email || '').trim().toLowerCase();
+    const dniNuevo = String(d.dni || '').replace(/\D/g, '') || null;
+    if (dniNuevo && dniNuevo.length < 8) throw falla(400, 'DNI inválido');
+    let email = String(d.email || '').trim().toLowerCase();
+    if (!email && dniNuevo) email = `${dniNuevo}@${(await env.DB.prepare('SELECT slug FROM colegios WHERE id = ?').bind(ctx.colegioId).first()).slug}.personal`;
     const nombre = String(d.nombre || '').trim().slice(0, 80);
     if (!ROLES[d.rol]) throw falla(400, 'Rol inválido');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !nombre) throw falla(400, 'Nombre y correo válidos son obligatorios');
@@ -45,8 +48,8 @@ export function rutasAdmin(r) {
     const telefono = d.telefono ? normalizarTelefono(d.telefono) : null;
     if (d.telefono && !telefono) throw falla(400, 'Celular inválido');
     const fila = await env.DB.prepare(
-      'INSERT INTO usuarios (colegio_id, nombre, email, rol, clave, apoderado_id, telefono) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id',
-    ).bind(ctx.colegioId, nombre, email, d.rol, conEnlace ? CLAVE_PENDIENTE : await hashClave(d.clave), apoderadoId, telefono).first().catch((e) => {
+      'INSERT INTO usuarios (colegio_id, nombre, email, rol, clave, apoderado_id, telefono, dni) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id',
+    ).bind(ctx.colegioId, nombre, email, d.rol, conEnlace ? CLAVE_PENDIENTE : await hashClave(d.clave), apoderadoId, telefono, dniNuevo).first().catch((e) => {
       if (String(e).includes('UNIQUE')) throw falla(409, 'Ya existe un usuario con ese correo');
       throw e;
     });
@@ -78,6 +81,11 @@ export function rutasAdmin(r) {
     if ('activo' in d) {
       lotes.push(env.DB.prepare('UPDATE usuarios SET activo = ? WHERE id = ?').bind(d.activo ? 1 : 0, id));
       if (!d.activo) lotes.push(env.DB.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id));
+    }
+    if ('dni' in d) {
+      const dni = String(d.dni || '').replace(/\D/g, '') || null;
+      if (dni && dni.length < 8) throw falla(400, 'DNI inválido');
+      lotes.push(env.DB.prepare('UPDATE usuarios SET dni = ? WHERE id = ?').bind(dni, id));
     }
     if ('telefono' in d) {
       const telefono = d.telefono ? normalizarTelefono(d.telefono) : null;
