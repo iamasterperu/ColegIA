@@ -60,6 +60,9 @@ export function rutasIngresoDni(r) {
         }
       }
     }
+    // Si la persona indicó su puesto, tiene que coincidir con el que el colegio registró
+    const puesto = String(d.rol || '');
+    if (u && puesto && u.rol !== puesto) u = null;
     if (!u) return fallar();
     if (colegio.suspendido) throw falla(403, 'El servicio de este colegio está suspendido. Comunícate con la dirección.');
 

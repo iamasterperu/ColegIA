@@ -18,6 +18,9 @@ assert.equal((await r.json()).rol, 'padre', 'familia detectada y cuenta creada')
 assert.equal(DB._raw.prepare("SELECT COUNT(*) n FROM usuarios WHERE rol='padre'").get().n, 1);
 await go({ colegio: 'cole', dni: '22222222', celular: '987000002' }); // segunda vez: misma cuenta
 assert.equal(DB._raw.prepare("SELECT COUNT(*) n FROM usuarios WHERE rol='padre'").get().n, 1);
+await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '987000001', rol: 'padre' }), /No encontramos/); // puesto distinto al registrado
+r = await go({ colegio: 'cole', dni: '11111111', celular: '987000001', rol: 'direccion' });
+assert.equal((await r.json()).rol, 'direccion');
 await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '999999999' }), /No encontramos/); // DNI con otro celular
 await assert.rejects(() => go({ colegio: 'cole', dni: '33333333', celular: '987000003' }), /No encontramos/); // sin hijo matriculado
 for (let i = 0; i < 5; i++) await go({ colegio: 'cole', dni: '44444444', celular: '911111111' }).catch(() => {});

@@ -110,6 +110,7 @@ async function pantallaIngreso(mensaje) {
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
         <form id="form-dni" class="form">
           <label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>
+          <label>Soy…<select name="rol" required><option value="">Elige tu puesto…</option><option value="padre">Padre / madre / apoderado</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="contabilidad">Contabilidad</option><option value="profesor">Profesor(a) / auxiliar</option></select></label>
           <label>Tu DNI<input name="dni" inputmode="numeric" autocomplete="off" maxlength="12" required placeholder="8 dígitos"></label>
           <label>Tu celular registrado en el colegio<input name="celular" type="tel" inputmode="tel" autocomplete="tel" required placeholder="9XXXXXXXX"></label>
           <button class="btn btn-primario" type="submit">Entrar al chat</button>
@@ -127,6 +128,18 @@ async function pantallaIngreso(mensaje) {
       </section>
     </main>`;
   import('./pwa.js').then((m) => m.botonInstalar($('#zona-instalar'))).catch(() => {});
+  // Este celular ya tenía una sesión abierta (por ejemplo de una prueba): se ofrece seguir o entrar con otra cuenta
+  api.get('/api/yo').then((y) => {
+    if (!y?.usuario || !$('#zona-instalar')) return;
+    const aviso2 = document.createElement('div');
+    aviso2.className = 'sesion-previa';
+    aviso2.innerHTML = html`<p>Este celular ya tiene una sesión abierta: <strong>${y.usuario.nombre}</strong> (${y.usuario.rol_nombre}).</p>
+      <button type="button" class="btn btn-primario" id="seguir-sesion">Continuar como ${y.usuario.nombre.split(' ')[0]}</button>
+      <button type="button" class="btn btn-fantasma" id="otra-cuenta">Entrar con otra cuenta</button>`;
+    $('#zona-instalar').after(aviso2);
+    $('#seguir-sesion').addEventListener('click', () => { history.replaceState(null, '', '/entrar'); iniciar(); });
+    $('#otra-cuenta').addEventListener('click', async () => { await api.post('/api/logout').catch(() => {}); aviso2.remove(); });
+  }).catch(() => {});
 
   const formDni = $('#form-dni');
   const elegido = () => formDni.colegio.value.trim().toLowerCase();
@@ -288,6 +301,8 @@ async function enrutar() {
 }
 
 async function iniciar() {
+  // Desde «Instalar la app» siempre se muestra el registro/ingreso, aunque el celular ya tenga una sesión
+  if (new URLSearchParams(location.search).has('instalar') && !sesion.usuario) return pantallaIngreso();
   try {
     Object.assign(sesion, await api.get('/api/yo'));
   } catch {

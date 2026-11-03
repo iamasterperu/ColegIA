@@ -381,3 +381,6 @@ th select { min-width: 140px; margin-top: 4px; }
 .chat-avisos { background: var(--wa-barra); padding: 6px 12px; flex: none; }
 .chat-avisos-btn { width: 100%; border: 0; border-radius: 10px; background: #d9fdd3; color: #075e54; font: inherit; font-weight: 700; padding: 9px; cursor: pointer; }
 .btn-avisos { background: #d9fdd3; color: #075e54; }
+
+.sesion-previa { background: var(--superficie-2); border-radius: 12px; padding: 12px; margin: 0 0 12px; display: grid; gap: 8px; }
+.sesion-previa p { margin: 0; }
