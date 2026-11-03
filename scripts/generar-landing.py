@@ -22,9 +22,9 @@ page = f'''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ColegIA · El asistente de WhatsApp de tu colegio</title>
-<meta name="description" content="ColegIA atiende por WhatsApp a las familias, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin datos de alumnos. Precio fijo mensual por colegio.">
-<meta property="og:title" content="ColegIA · El asistente de WhatsApp de tu colegio">
+<title>ColegIA · El chat privado de tu colegio</title>
+<meta name="description" content="ColegIA es el chat privado de tu colegio, instalado en el celular: atiende a las familias, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin datos de alumnos. Precio fijo mensual por colegio.">
+<meta property="og:title" content="ColegIA · El chat privado de tu colegio">
 <meta property="og:description" content="Admisiones, informes, comunicados, cobranza amable y apoyo docente. Demo de 30 días sin datos de alumnos.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
@@ -82,8 +82,8 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 <header class="hero">
   <div class="wrap">
     <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar">Ingresar</a></div>
-    <h1>El asistente de WhatsApp de tu colegio</h1>
-    <p class="lead">Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
+    <h1>El chat privado de tu colegio</h1>
+    <p class="lead">Una app instalable en el celular, con su propio chat inteligente. Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
     <div class="btns"><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
     <p class="note">Elige tu colegio y tu puesto. Al ingresar te ofrecemos instalar la app en tu celular para entrar con un toque.</p>
   </div>
@@ -91,7 +91,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 
 <section><div class="wrap">
   <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>
-  <p class="sub">Todo funciona en el WhatsApp que las familias y el personal ya usan. No instalan nada.</p>
+  <p class="sub">Cada persona entra a la app del colegio y conversa con el asistente, como en ChatGPT: escribe, habla o manda una foto. Sin WhatsApp, sin cuentas de Meta.</p>
   <div class="grid">
     <div class="card"><h3>Admisiones</h3><p>Responde pensiones, horarios y requisitos con lo que el colegio aprobó, anota a la familia interesada y agenda su visita.</p></div>
     <div class="card"><h3>Informes y comunicados</h3><p>Calendario, útiles y trámites al instante. La dirección redacta, elige a quién va, revisa y confirma.</p></div>
@@ -117,8 +117,8 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   <p class="sub">Pensado para la Ley 29733 de Protección de Datos Personales.</p>
   <ul>
     <li>El piloto no usa listas de alumnos, datos de padres, notas, DNI ni claves.</li>
-    <li>El WhatsApp es del colegio, con su RUC. El colegio lo controla siempre.</li>
-    <li>Las familias autorizan el uso de WhatsApp y pueden retirarlo cuando quieran.</li>
+    <li>El chat es privado: cada persona entra con su cuenta y solo ve lo que su rol permite. No se necesita WhatsApp ni cuenta de Meta.</li>
+    <li>Las familias autorizan el uso de sus datos y pueden retirarlo cuando quieran. WhatsApp queda como extra opcional.</li>
     <li>Cada consulta de datos personales queda registrada, y cada rol ve solo lo que necesita.</li>
     <li>Nunca se pide la clave SOL.</li>
   </ul>

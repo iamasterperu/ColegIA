@@ -5,14 +5,14 @@ ROLES = [
  {"id": "direccion", "nombre": "Dirección", "color": "VIO",
   "piloto": [
    "Ajusta la información que responde el asistente: pensiones, horarios, calendario, requisitos y preguntas frecuentes.",
-   "Ve en el panel a las familias interesadas y las visitas que se agendaron por WhatsApp.",
-   "Pide por WhatsApp un comunicado ya redactado o traducido, para copiarlo y enviarlo como siempre.",
+   "Ve en el panel a las familias interesadas y las visitas que se agendaron en el chat.",
+   "Pide en el chat un comunicado ya redactado o traducido, para copiarlo y enviarlo como siempre.",
    "Crea exámenes con versión A y B, y planifica sesiones, igual que un docente.",
    "Prueba con datos ficticios cómo se vería el resumen de morosidad, los alumnos en riesgo y los comunicados."],
   "contrato": [
    "Resumen del colegio, deuda por grado y por aula, y alumnos en riesgo (alerta temprana).",
    "Comunicados a todos los padres, con vista previa, confirmación y registro de quién los leyó.",
-   "Resumen diario por WhatsApp a las 8 a. m. de lunes a viernes.",
+   "Resumen diario en el chat de la app, de lunes a viernes.",
    "Registro de quién consultó datos de alumnos y atención de solicitudes ARCO (Ley 29733)."]},
  {"id": "secretaria", "nombre": "Secretaría", "color": "MINT",
   "piloto": [
@@ -25,7 +25,7 @@ ROLES = [
    "Busca a cualquier alumno y sus contactos con solo escribir su nombre.",
    "Carga fichas de matrícula y listas desde una foto o un Excel.",
    "Avisa a un grado completo y a cada padre los útiles que le faltan.",
-   "Bandeja de mensajes de padres por atender y autorizaciones de WhatsApp pendientes.",
+   "Bandeja de mensajes de padres por atender y autorizaciones de familias pendientes.",
    "Constancias y diplomas con el diseño del colegio, reinscripción y carta de presentación para familias nuevas."]},
  {"id": "contabilidad", "nombre": "Contabilidad", "color": "AMB",
   "piloto": [
@@ -46,7 +46,7 @@ ROLES = [
    "Traducción de textos y comunicados.",
    "Solo hace falta registrar su nombre y celular."],
   "contrato": [
-   "Toma de lista por WhatsApp: se registra sola y la directora recibe el resumen diario.",
+   "Toma de lista desde el chat: se registra sola y la directora recibe el resumen diario.",
    "Notas por texto o por la foto del registro.",
    "Resultados del examen por pregunta y radar de temas débiles del aula.",
    "Alumnos en riesgo, alertas de salud y justificaciones de sus padres.",
@@ -60,7 +60,7 @@ ROLES = [
    "Mientras tanto pueden usar el acceso de docente si el colegio se lo da."]},
  {"id": "padres", "nombre": "Padres y familias", "color": "MINT",
   "piloto": [
-   "Las familias nuevas preguntan por pensiones, horarios y requisitos, y agendan su visita por WhatsApp.",
+   "Las familias nuevas preguntan por pensiones, horarios y requisitos, y agendan su visita desde el chat.",
    "Cualquier familia consulta calendario, horarios, trámites y preguntas frecuentes, a cualquier hora.",
    "El asistente solo responde lo que el colegio aprobó. Si no lo sabe, deriva a secretaría.",
    "Guarda nombre y celular solo si la familia los da, con aviso de privacidad."],
@@ -81,15 +81,15 @@ ROLES = [
   "piloto": [
    "Sin uso en el piloto."],
   "contrato": [
-   "Los tutores reciben cada lunes la alerta temprana de su aula por WhatsApp.",
+   "Los tutores reciben cada lunes la alerta temprana de su aula en el chat de la app.",
    "Dirección comparte con psicología los alumnos en riesgo.",
    "Portería y administración no necesitan usar la app."]},
 ]
 ETAPAS = [
  ("Piloto de 30 días", "Sin datos de alumnos ni de padres",
   "Solo información pública del colegio. El colegio envía lo que ya entrega a las familias y el asistente responde con eso."),
- ("Contrato", "Se activa el WhatsApp del colegio",
-  "Número de WhatsApp Business del colegio, lista de apoderados con su autorización, comunicados a todas las familias y avisos de pago."),
+ ("Contrato", "Se activa el chat con las familias",
+  "Cuentas de las familias en la app, lista de apoderados con su autorización, comunicados a todas las familias y avisos de pago. WhatsApp es un extra opcional."),
  ("Cobranza y comprobantes", "Con el proveedor que el colegio ya use",
   "Cobranza amable y boletas o facturas electrónicas. Nunca se pide la clave SOL."),
  ("Notas y refuerzo", "Con autorización de las familias",
