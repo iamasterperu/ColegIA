@@ -4,6 +4,7 @@ import { json, cuerpo, falla, leerCookie, entero } from '../lib/http.js';
 import { verificarClave } from '../lib/claves.js';
 import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { ROLES } from '../lib/permisos.js';
+import { esImagenOk } from '../lib/marca.js';
 import { CLAVE_PENDIENTE, crearInvitacion, canjearInvitacion, leerInvitacion } from '../lib/invitaciones.js';
 
 const DURACION = 30 * 86_400;
@@ -72,7 +73,7 @@ export function rutasDueno(r) {
   r.get('/api/dueno/colegios', async (ctx, env) => {
     await exigirDueno(ctx, env);
     const { results } = await env.DB.prepare(
-      `SELECT c.id, c.slug, c.nombre, c.es_demo, c.suspendido, c.mostrar_en_ingreso, c.wa_modo, c.color_primario, c.color_secundario, c.creado_en,
+      `SELECT c.id, c.slug, c.nombre, c.nombre_corto, (c.icono IS NOT NULL) AS tiene_icono, (c.logo IS NOT NULL) AS tiene_logo, c.es_demo, c.suspendido, c.mostrar_en_ingreso, c.wa_modo, c.color_primario, c.color_secundario, c.creado_en,
         (SELECT COUNT(*) FROM usuarios u WHERE u.colegio_id = c.id AND u.rol != 'padre' AND u.activo = 1) AS usuarios,
         (SELECT COUNT(*) FROM alumnos a WHERE a.colegio_id = c.id AND a.estado = 'matriculado') AS alumnos,
         (SELECT MAX(ultimo_acceso) FROM usuarios u WHERE u.colegio_id = c.id) AS ultimo_acceso
@@ -83,15 +84,18 @@ export function rutasDueno(r) {
 
   r.post('/api/dueno/colegios', async (ctx, env) => {
     await exigirDueno(ctx, env);
-    const d = await cuerpo(ctx.request, 5000);
+    const d = await cuerpo(ctx.request, 1_200_000);
     const nombre = String(d.nombre || '').trim().slice(0, 100);
     const slug = String(d.slug || '').trim().toLowerCase();
     const correo = String(d.director_email || '').trim().toLowerCase();
     const dir = String(d.director_nombre || '').trim().slice(0, 80);
     if (!nombre || !/^[a-z0-9-]{3,30}$/.test(slug)) throw falla(400, 'Nombre del colegio y código (3 a 30 letras minúsculas, números o guiones) son obligatorios');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo) || !dir) throw falla(400, 'Nombre y correo de la directora son obligatorios');
-    const c = await env.DB.prepare('INSERT INTO colegios (slug, nombre, color_primario, color_secundario) VALUES (?, ?, ?, ?) RETURNING id')
-      .bind(slug, nombre, colorOk(d.color_primario) || '#1e3a8a', colorOk(d.color_secundario) || '#f59e0b').first()
+    if (d.logo && !esImagenOk(d.logo, 150_000)) throw falla(400, 'Logo inválido o muy pesado');
+    if (d.icono && !esImagenOk(d.icono, 900_000)) throw falla(400, 'Ícono inválido o muy pesado');
+    const corto = String(d.nombre_corto || '').trim().slice(0, 20) || null;
+    const c = await env.DB.prepare('INSERT INTO colegios (slug, nombre, nombre_corto, logo, icono, color_primario, color_secundario) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id')
+      .bind(slug, nombre, corto, d.logo || null, d.icono || null, colorOk(d.color_primario) || '#1e3a8a', colorOk(d.color_secundario) || '#f59e0b').first()
       .catch((e) => { if (String(e).includes('UNIQUE')) throw falla(409, 'Ya existe un colegio con ese código'); throw e; });
     const u = await env.DB.prepare("INSERT INTO usuarios (colegio_id, nombre, email, rol, clave) VALUES (?, ?, ?, 'direccion', ?) RETURNING id").bind(c.id, dir, correo, CLAVE_PENDIENTE).first();
     return json({ id: c.id, enlace: enlace(env, await crearInvitacion(env, 'usuario', u.id)) }, 201);
@@ -100,8 +104,11 @@ export function rutasDueno(r) {
   r.put('/api/dueno/colegios/:id', async (ctx, env) => {
     await exigirDueno(ctx, env);
     const id = entero(ctx.params.id);
-    const d = await cuerpo(ctx.request, 3000);
+    const d = await cuerpo(ctx.request, 1_200_000);
     const sets = [], vals = [];
+    if (typeof d.nombre_corto === 'string') { sets.push('nombre_corto = ?'); vals.push(d.nombre_corto.trim().slice(0, 20) || null); }
+    if ('logo' in d) { if (d.logo && !esImagenOk(d.logo, 150_000)) throw falla(400, 'Logo inválido o muy pesado'); sets.push('logo = ?'); vals.push(d.logo || null); }
+    if ('icono' in d) { if (d.icono && !esImagenOk(d.icono, 900_000)) throw falla(400, 'Ícono inválido o muy pesado'); sets.push('icono = ?'); vals.push(d.icono || null); }
     if (typeof d.nombre === 'string' && d.nombre.trim()) { sets.push('nombre = ?'); vals.push(d.nombre.trim().slice(0, 100)); }
     if (colorOk(d.color_primario)) { sets.push('color_primario = ?'); vals.push(d.color_primario); }
     if (colorOk(d.color_secundario)) { sets.push('color_secundario = ?'); vals.push(d.color_secundario); }

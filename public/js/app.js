@@ -84,17 +84,23 @@ export function aplicarMarca(c) {
     .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   raiz.style.setProperty('--sobre-marca', lum > 0.4 ? '#111827' : '#ffffff');
-  document.title = `${c.nombre} · ColegIA`;
+  document.title = COLEGIO_PROPIO ? c.nombre : `${c.nombre} · ColegIA`;
 }
+
+// App de un colegio instalada desde /e/<colegio>: el colegio ya viene elegido y no se muestran otros
+const COLEGIO_PROPIO = (/^\/e\/([a-z0-9-]{3,30})\/?$/.exec(location.pathname) || [])[1] || '';
+const BASE = COLEGIO_PROPIO ? `/e/${COLEGIO_PROPIO}` : '/entrar';
 
 async function pantallaIngreso(mensaje) {
   const app = $('#app');
   const params = new URLSearchParams(location.search);
   if (params.get('inv')) return pantallaInvitacion(params.get('inv'));
-  let slug = (params.get('c') || leer('colegia:colegio') || '').toLowerCase();
+  let slug = (COLEGIO_PROPIO || params.get('c') || leer('colegia:colegio') || '').toLowerCase();
   let lista = [];
-  try { lista = (await api.get('/api/publico/colegios')).colegios; } catch { lista = []; }
-  if (!lista.some((c) => c.slug === slug)) slug = '';
+  if (!COLEGIO_PROPIO) {
+    try { lista = (await api.get('/api/publico/colegios')).colegios; } catch { lista = []; }
+    if (!lista.some((c) => c.slug === slug)) slug = '';
+  }
   let colegio = null;
   if (slug) { try { colegio = await api.get(`/api/publico/colegio/${encodeURIComponent(slug)}`); } catch { colegio = null; } }
   if (colegio) aplicarMarca(colegio);
@@ -104,12 +110,12 @@ async function pantallaIngreso(mensaje) {
       <section class="ingreso-caja">
         <div class="ingreso-marca">
           ${colegio?.logo ? html`<img src="${colegio.logo}" alt="" class="logo-grande">` : html`<div class="logo-chat-wa">${crudo(ICONO_CHAT)}</div>`}
-          <div><p class="sobretitulo">ColegIA · el chat de tu colegio</p><h1>${colegio?.nombre || 'Ingresa a tu colegio'}</h1></div>
+          <div><p class="sobretitulo">${COLEGIO_PROPIO ? 'Chat del colegio' : 'ColegIA · el chat de tu colegio'}</p><h1>${colegio?.nombre || 'Ingresa a tu colegio'}</h1></div>
         </div>
         <div id="zona-instalar"></div>
         ${mensaje ? html`<p class="alerta">${mensaje}</p>` : ''}
         <form id="form-dni" class="form">
-          <label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>
+          ${COLEGIO_PROPIO ? crudo(`<input type="hidden" name="colegio" value="${slug}">`) : ''}${COLEGIO_PROPIO ? '' : crudo(html`<label>Colegio<select name="colegio" required><option value="">Elige tu colegio…</option>${lista.map((c) => html`<option value="${c.slug}" ${c.slug === slug ? crudo('selected') : ''}>${c.nombre}</option>`)}</select></label>`)}
           <label>Soy…<select name="rol" required><option value="">Elige tu puesto…</option><option value="padre">Padre / madre / apoderado</option><option value="direccion">Dirección</option><option value="secretaria">Secretaría</option><option value="contabilidad">Contabilidad</option><option value="profesor">Profesor(a) / auxiliar</option></select></label>
           <label>Tu DNI<input name="dni" inputmode="numeric" autocomplete="off" maxlength="12" required placeholder="8 dígitos"></label>
           <label>Tu celular registrado en el colegio<input name="celular" type="tel" inputmode="tel" autocomplete="tel" required placeholder="9XXXXXXXX"></label>
@@ -146,7 +152,7 @@ async function pantallaIngreso(mensaje) {
       <button type="button" class="btn btn-primario" id="seguir-sesion">Continuar como ${y.usuario.nombre.split(' ')[0]}</button>
       <button type="button" class="btn btn-fantasma" id="otra-cuenta">Entrar con otra cuenta</button>`;
     $('#zona-instalar').after(aviso2);
-    $('#seguir-sesion').addEventListener('click', () => { history.replaceState(null, '', '/entrar'); iniciar(); });
+    $('#seguir-sesion').addEventListener('click', () => { history.replaceState(null, '', BASE); iniciar(); });
     $('#otra-cuenta').addEventListener('click', async () => { await api.post('/api/logout').catch(() => {}); aviso2.remove(); });
   }).catch(() => {});
 
@@ -157,7 +163,7 @@ async function pantallaIngreso(mensaje) {
     try {
       await api.post(url, datos);
       guardar('colegia:colegio', datos.colegio.trim().toLowerCase());
-      if (params.has('c') || params.has('instalar')) history.replaceState(null, '', '/entrar');
+      if (params.has('c') || params.has('instalar')) history.replaceState(null, '', BASE);
       await iniciar();
     } catch (er) { aviso(er.message, 'error'); } finally { boton.disabled = false; }
   };
@@ -203,7 +209,7 @@ async function pantallaIngreso(mensaje) {
   });
   formDni.colegio.addEventListener('change', () => {
     const nuevo = elegido();
-    if (nuevo && nuevo !== slug) { guardar('colegia:colegio', nuevo); history.replaceState(null, '', `/entrar?c=${encodeURIComponent(nuevo)}`); pantallaIngreso(); }
+    if (nuevo && nuevo !== slug) { guardar('colegia:colegio', nuevo); history.replaceState(null, '', `${BASE}?c=${encodeURIComponent(nuevo)}`); pantallaIngreso(); }
   });
 }
 

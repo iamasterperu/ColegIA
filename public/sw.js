@@ -12,11 +12,11 @@ self.addEventListener('fetch', (e) => {
 // El aviso llega sin contenido: el texto se pide con la sesión de esta persona
 self.addEventListener('push', (e) => {
   e.waitUntil((async () => {
-    let d = { titulo: 'ColegIA', cuerpo: 'Tienes un mensaje nuevo', n: 1 };
+    let d = { titulo: 'ColegIA', cuerpo: 'Tienes un mensaje nuevo', n: 1, url: '/entrar#/chat', icono: '/icons/icon-192.png' };
     try { const r = await fetch('/api/chat/ultimo', { credentials: 'same-origin' }); if (r.ok) d = await r.json(); } catch { /* sin conexión: aviso genérico */ }
     try { await self.navigator.setAppBadge?.(d.n || 1); } catch { /* sin soporte */ }
     await self.registration.showNotification(d.titulo, {
-      body: d.cuerpo, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: 'colegia-chat', renotify: true, vibrate: [200, 100, 200], silent: false, requireInteraction: false, data: { url: '/entrar#/chat' },
+      body: d.cuerpo, icon: d.icono || '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: 'colegia-chat', renotify: true, vibrate: [200, 100, 200], silent: false, requireInteraction: false, data: { url: d.url || '/entrar#/chat' },
     });
   })());
 });
@@ -25,7 +25,7 @@ self.addEventListener('notificationclick', (e) => {
   const destino = e.notification.data?.url || '/entrar#/chat';
   e.waitUntil((async () => {
     const abiertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const una = abiertas.find((c) => c.url.includes('/entrar'));
+    const una = abiertas.find((c) => c.url.includes('/entrar') || c.url.includes('/e/'));
     if (una) { await una.focus(); una.navigate?.(destino).catch(() => {}); return; }
     await self.clients.openWindow(destino);
   })());

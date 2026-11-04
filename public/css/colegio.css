@@ -1,0 +1,20 @@
+:root { --marca: #1e3a8a; --sec: #f59e0b; --fondo: #f3f4f6; --sup: #fff; --txt: #111827; --bor: #e5e7eb; --sobre: #fff; }
+@media (prefers-color-scheme: dark) { :root { --fondo: #0f172a; --sup: #1e293b; --txt: #f1f5f9; --bor: #334155; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); color: var(--txt); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 520px; margin: 0 auto; padding: 0 16px 40px; }
+.carga { text-align: center; padding: 40vh 0; }
+.cab { background: var(--marca); color: var(--sobre); margin: 0 -16px; padding: 28px 16px 24px; text-align: center; }
+.cab img { width: 96px; height: 96px; object-fit: contain; border-radius: 22px; background: rgba(255,255,255,.12); padding: 6px; }
+.cab h1 { margin: 12px 0 4px; font-size: 1.45rem; }
+.cab p { margin: 0; opacity: .85; font-size: .95rem; }
+.acciones { display: grid; gap: 12px; margin: 22px 0; }
+.btn { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--bor); background: var(--sup); color: var(--txt); text-decoration: none; font-weight: 700; }
+.btn small { display: block; font-weight: 400; opacity: .75; font-size: .85rem; }
+.btn.p { background: var(--marca); color: var(--sobre); border-color: transparent; }
+.btn .i { font-size: 1.6rem; }
+.qr { text-align: center; background: var(--sup); border: 1px solid var(--bor); border-radius: 16px; padding: 18px; }
+.qr svg { width: 220px; height: 220px; max-width: 100%; }
+.qr p { margin: 8px 0 0; font-size: .9rem; opacity: .8; }
+.datos { margin-top: 22px; font-size: .92rem; opacity: .85; text-align: center; }
+.pie { margin-top: 26px; text-align: center; font-size: .78rem; opacity: .6; }

@@ -20,6 +20,7 @@ import { rutasDueno } from './rutas/dueno.js';
 import { rutasChat } from './rutas/chat.js';
 import { rutasIngresoDni } from './rutas/ingreso-dni.js';
 import { rutasAdmisionWeb } from './rutas/admision-web.js';
+import { rutasInstalacion } from './rutas/instalacion.js';
 import { cumpleanios, borradoresFiestas, reporteDiario, reporteMensual } from './whatsapp/automatizacion.js';
 import { seguimientoReinscripcion } from './whatsapp/reinscripcion.js';
 import { rutasDocente } from './rutas/docente.js';
@@ -30,7 +31,7 @@ import { cargarConexion } from './whatsapp/envio.js';
 
 const router = new Router();
 [rutasAuth, rutasAlumnos, rutasPagos, rutasUtiles, rutasPanel, rutasWhatsapp, rutasWebhook,
-  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos, rutasPublicas, rutasAutomatizacion, rutasDiplomas, rutasDueno, rutasChat, rutasAdmisionWeb, rutasIngresoDni].forEach((registrar) => registrar(router));
+  rutasCumplimiento, rutasAdmin, rutasImportar, rutasAdmision, rutasDocente, rutasDocumentosPublicos, rutasPublicas, rutasAutomatizacion, rutasDiplomas, rutasDueno, rutasChat, rutasAdmisionWeb, rutasIngresoDni, rutasInstalacion].forEach((registrar) => registrar(router));
 
 const PUBLICAS = ['/api/login', '/api/logout'];
 
@@ -39,7 +40,7 @@ export default {
     const url = new URL(request.url);
     const encontrada = router.buscar(request.method, url.pathname);
     if (!encontrada) {
-      if (/^\/(api|webhook|d|c|carta)\//.test(url.pathname)) return json({ error: 'Ruta no encontrada' }, 404);
+      if (/^\/(api|webhook|d|c|i|carta)\//.test(url.pathname)) return json({ error: 'Ruta no encontrada' }, 404);
       return env.ASSETS.fetch(request);
     }
     const esApi = url.pathname.startsWith('/api/');
