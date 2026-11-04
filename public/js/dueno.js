@@ -39,8 +39,8 @@ async function prepararImagen(archivo, colorFondo) {
   };
   let logo = lienzo(256, null, 0).toDataURL('image/png');
   if (logo.length > 140000) logo = lienzo(256, null, 0).toDataURL('image/webp', 0.9);
-  let icono = lienzo(512, colorFondo, 0.1).toDataURL('image/png');
-  if (icono.length > 850000) icono = lienzo(384, colorFondo, 0.1).toDataURL('image/png');
+  let icono = lienzo(512, colorFondo, 0.12).toDataURL('image/png');
+  if (icono.length > 850000) icono = lienzo(384, colorFondo, 0.12).toDataURL('image/png');
   return { logo, icono };
 }
 
