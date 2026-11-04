@@ -10,6 +10,7 @@ import { hayIA, SinIA, leerImagen } from '../ia/modelo.js';
 import { leerWeb, leerPdf } from '../ia/fuentes.js';
 import { leerExamenCalificado, armarResultados, prepararResultados } from '../lib/calificar.js';
 import { tiene } from '../lib/permisos.js';
+import { avisarNotas } from '../lib/avisos-nota.js';
 
 const puedeCrear = (u) => ['direccion', 'profesor'].includes(u.rol);
 async function archivoSubido(ctx, maxBytes) {
@@ -136,7 +137,9 @@ export function rutasDocente(r) {
     const p = await prepararResultados(env, ctx.colegioId, ctx.usuario, d, filas, { guardarNota: !!datos.guardar_nota });
     if (!p.guardados) throw falla(400, 'No se pudo guardar: revisa que cada examen tenga un alumno elegido');
     await env.DB.batch([...p.sentencias, sentenciaAuditoria(env, ctx, 'registrar_resultados_examen', 'documento', d.id, { alumnos: p.guardados })]);
-    return json({ guardados: p.guardados, nota_bimestre: p.nota_bimestre });
+    let avisados = 0;
+    if (p.nota_bimestre && p.notas?.length) avisados = await avisarNotas(env, ctx.colegioId, ctx.usuario.id, p.notas);
+    return json({ guardados: p.guardados, nota_bimestre: p.nota_bimestre, avisados });
   });
 
   // Crear desde la web (lo mismo que por WhatsApp)

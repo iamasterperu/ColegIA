@@ -182,7 +182,7 @@ function activarCalificacion(vista, d) {
           guardar_nota: $('#c-bimestre', tabla).checked,
           filas: validas.map((f) => ({ alumno_id: f.alumno_id, porcentaje: f.porcentaje, falladas: f.falladas })),
         });
-        aviso(`Listo: ${r.guardados} resultado(s) guardados${r.nota_bimestre ? ' y registrados como nota del bimestre' : ''}`);
+        aviso(`Listo: ${r.guardados} resultado(s) guardados${r.nota_bimestre ? ' y registrados como nota del bimestre. Cada padre recibió el aviso en su app' : ''}`);
         detalle(vista, d.id);
       });
     });

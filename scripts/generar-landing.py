@@ -95,7 +95,7 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
 
 <section><div class="wrap">
   <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>
-  <p class="sub">Es como WhatsApp, pero del colegio: se instala en el celular, entras una sola vez con tu DNI y la app reconoce si eres padre, profesor, dirección, secretaría o contabilidad. Escribes, hablas o mandas una foto, y cada rol tiene su panel de control. Sin cuentas de Meta.</p>
+  <p class="sub">Es el chat propio del colegio y el único medio con los padres: se instala en el celular, entras una sola vez con tu DNI y la app reconoce si eres padre, profesor, dirección, secretaría o contabilidad. Escribes, hablas o mandas una foto, y cada rol tiene su panel de control. Cada nota que registra el profesor le llega al padre al instante, con el curso, el día y la hora.</p>
   <div class="grid">
     <div class="card"><h3>Admisiones</h3><p>Cada colegio tiene un enlace y un código QR de información: las familias nuevas entran sin crear cuenta, reciben pensiones, horarios y requisitos con lo que el colegio aprobó, y dejan su nombre y celular para agendar la visita.</p></div>
     <div class="card"><h3>Informes y comunicados</h3><p>Calendario, útiles y trámites al instante. La dirección redacta, elige a quién va, revisa y confirma.</p></div>
@@ -121,9 +121,9 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   <p class="sub">Pensado para la Ley 29733 de Protección de Datos Personales.</p>
   <ul>
     <li>El piloto no usa listas de alumnos, datos de padres, notas, DNI ni claves.</li>
-    <li>El chat es privado: cada persona entra con su cuenta y solo ve lo que su rol permite. No se necesita WhatsApp ni cuenta de Meta.</li>
+    <li>El chat es privado: cada persona entra con su cuenta y solo ve lo que su rol permite. Todo ocurre dentro de la app del colegio.</li>
     <li>Dirección, secretaría y contabilidad pueden crear su propia contraseña: nadie se la entrega y, una vez creada, entran con DNI, celular y contraseña.</li>
-    <li>Las familias autorizan el uso de sus datos y pueden retirarlo cuando quieran. WhatsApp queda como extra opcional.</li>
+    <li>Las familias autorizan el uso de sus datos y pueden retirarlo cuando quieran.</li>
     <li>Cada consulta de datos personales queda registrada, y cada rol ve solo lo que necesita.</li>
     <li>Nunca se pide la clave SOL.</li>
   </ul>

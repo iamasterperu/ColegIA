@@ -52,7 +52,7 @@ export async function mostrar(vista) {
         </div>
       </section>
 
-      <section class="tarjeta form"><h2>WhatsApp</h2>
+      <section class="tarjeta form" style="display:none"><h2>Conexión externa</h2>
         <div class="modo-chat" role="radiogroup" aria-label="Modo de WhatsApp">
           <button type="button" data-modo="simulado" class="${c.wa_modo === 'simulado' ? 'activo' : ''}">Simulado (pruebas)</button>
           <button type="button" data-modo="cloud" class="${c.wa_modo === 'cloud' ? 'activo' : ''}">WhatsApp real (Cloud API)</button>

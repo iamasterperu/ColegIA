@@ -6,6 +6,7 @@ import { normalizar } from '../../lib/texto.js';
 import { hoyLima } from '../../lib/http.js';
 import { leerImagen, hayIA } from '../../ia/modelo.js';
 import { auditoria, buscarAlumnos } from '../comun.js';
+import { avisarNotas } from '../../lib/avisos-nota.js';
 
 const NOTA = /^(AD|A|B|C|\d{1,2}(?:[.,]\d)?)$/i;
 
@@ -130,7 +131,8 @@ export async function ejecutarRegistro(env, colegio, persona, datos, notificar) 
       ).bind(colegio.id, n.alumno_id, datos.curso, datos.bimestre, n.nota)),
       auditoria(env, colegio, persona, 'registrar_notas', null, null, { curso: datos.curso, bimestre: datos.bimestre, alumnos: notas.length }),
     ]);
-    return `✅ Guardé ${notas.length} notas de ${datos.curso} (${datos.bimestre}° bimestre). Los padres las ven al escribir "notas".`;
+    const avisadosNotas = await avisarNotas(env, colegio.id, persona.usuario.id, notas.map((n) => ({ alumno_id: n.alumno_id, curso: datos.curso, bimestre: datos.bimestre, nota: n.nota })));
+    return `✅ Guardé ${notas.length} notas de ${datos.curso} (${datos.bimestre}° bimestre). Cada padre recibió el aviso en su chat (${avisadosNotas}) y las ve en su app.`;
   }
   const registros = [
     ...datos.faltas.filter((x) => permitidos.has(x)).map((alumnoId) => ({ alumnoId, estado: 'falta' })),

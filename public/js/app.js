@@ -35,7 +35,6 @@ export const MENU = [
   { ruta: 'alertas', texto: 'Alertas tempranas', icono: 'alerta', ver: (s) => ['direccion', 'profesor', 'secretaria'].includes(s.usuario.rol) },
   { ruta: 'pagos', texto: 'Pagos y recordatorios', icono: 'pagos', permiso: 'pagos.ver' },
   { ruta: 'utiles', texto: 'Listas de útiles', icono: 'utiles', permiso: 'utiles.ver' },
-  { ruta: 'whatsapp', texto: 'WhatsApp (opcional)', icono: 'whatsapp', permiso: 'whatsapp.ver' },
   { ruta: 'admision', texto: 'Admisiones', icono: 'familia', permiso: 'admision.ver' },
   { ruta: 'informes', texto: 'Información del colegio', icono: 'utiles', permiso: 'informes.editar' },
   { ruta: 'importar', texto: 'Importar Excel', icono: 'importar', ver: (s) => s.permisos.some((p) => p.startsWith('importar.alumnos') || p === 'importar.pagos' || p === 'usuarios.gestionar') },
@@ -268,7 +267,6 @@ function armarMarco() {
           <button class="btn-menu" id="abrir-menu" aria-label="Abrir menú">☰<b class="insignia insignia-menu" id="ins-menu" hidden></b></button>
           <span class="barra-titulo" id="barra-titulo"></span>
           ${colegio.es_demo ? html`<span class="etiqueta etiqueta-demo">Demo</span>` : ''}
-          ${puede('whatsapp.ver') && colegio.wa_modo === 'cloud' ? html`<span class="etiqueta ${colegio.wa_modo === 'cloud' ? 'etiqueta-ok' : ''}">WhatsApp: ${colegio.wa_modo === 'cloud' ? 'conectado' : 'simulado'}</span>` : ''}
         </header>
         <main id="vista" tabindex="-1"></main>
         <nav class="tabs" aria-label="Chat y panel">

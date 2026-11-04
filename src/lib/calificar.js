@@ -126,6 +126,7 @@ export async function prepararResultados(env, colegioId, usuario, doc, filas, { 
   const bimestre = bimestreActual();
   const sentencias = [];
   const guardados = [];
+  const notas = [];
   for (const f of filas) {
     const id = Number(f.alumno_id);
     const pct = Number(f.porcentaje);
@@ -143,9 +144,10 @@ export async function prepararResultados(env, colegioId, usuario, doc, filas, { 
         `INSERT INTO notas (colegio_id, alumno_id, curso, bimestre, nota) VALUES (?, ?, ?, ?, ?)
          ON CONFLICT(alumno_id, curso, bimestre) DO UPDATE SET nota = excluded.nota`,
       ).bind(colegioId, id, curso, bimestre, String(Math.round(puntaje))));
+      notas.push({ alumno_id: id, curso, bimestre, nota: String(Math.round(puntaje)) });
     }
     guardados.push(id);
   }
-  return { sentencias, guardados: guardados.length, nota_bimestre: curso ? { curso, bimestre } : null };
+  return { sentencias, notas, guardados: guardados.length, nota_bimestre: curso ? { curso, bimestre } : null };
 }
 const colegio0 = (id) => ({ id });

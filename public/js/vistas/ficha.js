@@ -101,7 +101,7 @@ export async function mostrar(vista, [id], sesion) {
         ${f.academico ? crudo(seccionAprendizaje(f.academico)) : ''}
         ${f.pagos ? crudo(html`<section class="tarjeta"><div class="tarjeta-titulo"><h2>Pagos ${sesion.colegio.anio_escolar}</h2></div>${crudo(seccionPagos(f.pagos, f.id))}</section>`) : ''}
         ${f.mensajes ? crudo(html`<section class="tarjeta"><div class="tarjeta-titulo"><h2>Últimos mensajes del chat</h2>
-            <a class="btn btn-chico" href="#/whatsapp/${f.apoderados?.[0]?.telefono || ''}">Abrir chat</a></div>
+            <a class="btn btn-chico" href="#/chat">Abrir chat</a></div>
           ${f.mensajes.length ? crudo(html`<ul class="lista-actividad">${f.mensajes.slice(0, 8).map((m) => html`<li><span>${m.sentido === 'entrante' ? '⬅' : '➡'} ${(m.texto || m.transcripcion || '[audio]').slice(0, 90)}</span><span class="pequeno">${fecha(m.creado_en, true)}</span></li>`)}</ul>`) : crudo('<p class="pequeno">Sin mensajes.</p>')}</section>`) : ''}
       </div>
       <div>
