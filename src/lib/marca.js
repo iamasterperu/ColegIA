@@ -1,3 +1,6 @@
+import { ARCHIVOS } from '../estaticos.generado.js';
+// Imagen propia de un colegio guardada como archivo del proyecto (public/colegios/<código>/logo.png o icono.png)
+export const imagenFija = (slug, nombre) => ARCHIVOS[`/colegios/${slug}/${nombre}.png`] || null;
 // Marca de cada colegio en la app instalada: nombre corto (debajo del ícono) e ícono propio.
 const PREFIJOS = /^(i\.?e\.?p?\.?|colegio|institución educativa( privada)?|centro educativo|cebe|c\.e\.)\s+/i;
 export const nombreCorto = (c) => {

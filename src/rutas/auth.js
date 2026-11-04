@@ -5,7 +5,7 @@ import { PERMISOS, ROLES } from '../lib/permisos.js';
 import { DURACION_SESION, DURACION_RECORDADA, exigir } from '../lib/sesion.js';
 import { auditar, sentenciaAuditoria } from '../lib/auditoria.js';
 import { FINALIDADES, textoFinalidad } from '../lib/consentimiento.js';
-import { nombreCorto } from '../lib/marca.js';
+import { nombreCorto, imagenFija } from '../lib/marca.js';
 
 const MAX_FALLOS = 5;
 // Hash de relleno: si el correo no existe se calcula igual, así el tiempo de respuesta no lo delata.
@@ -13,10 +13,10 @@ const CLAVE_RELLENO = 'pbkdf2$5000$00000000000000000000000000000000$' + '0'.repe
 
 export function colegioPublico(c) {
   return {
-    slug: c.slug, nombre: c.nombre, logo: c.logo, color_primario: c.color_primario,
+    slug: c.slug, nombre: c.nombre, logo: c.logo || (imagenFija(c.slug, 'logo') ? `/colegios/${c.slug}/logo.png` : null), color_primario: c.color_primario,
     color_secundario: c.color_secundario, ruc: c.ruc, direccion: c.direccion,
     email_privacidad: c.email_privacidad, registro_banco_datos: c.registro_banco_datos,
-    es_demo: !!c.es_demo, anio_escolar: c.anio_escolar, telefono: c.telefono, nombre_corto: nombreCorto(c), tiene_icono: !!c.icono,
+    es_demo: !!c.es_demo, anio_escolar: c.anio_escolar, telefono: c.telefono, nombre_corto: nombreCorto(c), tiene_icono: !!c.icono || !!imagenFija(c.slug, 'icono'),
   };
 }
 

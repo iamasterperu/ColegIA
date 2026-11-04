@@ -4,7 +4,7 @@ import { json, cuerpo, falla, leerCookie, entero } from '../lib/http.js';
 import { verificarClave } from '../lib/claves.js';
 import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { ROLES } from '../lib/permisos.js';
-import { esImagenOk } from '../lib/marca.js';
+import { esImagenOk, imagenFija } from '../lib/marca.js';
 import { CLAVE_PENDIENTE, crearInvitacion, canjearInvitacion, leerInvitacion } from '../lib/invitaciones.js';
 
 const DURACION = 30 * 86_400;
@@ -79,7 +79,7 @@ export function rutasDueno(r) {
         (SELECT MAX(ultimo_acceso) FROM usuarios u WHERE u.colegio_id = c.id) AS ultimo_acceso
        FROM colegios c ORDER BY c.es_demo, c.nombre`,
     ).all();
-    return json({ colegios: results });
+    return json({ colegios: results.map((x) => ({ ...x, tiene_icono: !!x.tiene_icono || !!imagenFija(x.slug, 'icono') })) });
   });
 
   r.post('/api/dueno/colegios', async (ctx, env) => {
