@@ -18,3 +18,5 @@ main { max-width: 520px; margin: 0 auto; padding: 0 16px 40px; }
 .qr p { margin: 8px 0 0; font-size: .9rem; opacity: .8; }
 .datos { margin-top: 22px; font-size: .92rem; opacity: .85; text-align: center; }
 .pie { margin-top: 26px; text-align: center; font-size: .78rem; opacity: .6; }
+.ayuda { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--sup); border: 1px solid var(--bor); font-size: .92rem; }
+.enlace { text-align: center; font-size: .88rem; color: var(--txt); opacity: .75; }

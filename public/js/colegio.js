@@ -5,6 +5,26 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const slug = (location.pathname.split('/')[2] || '').toLowerCase();
 const raiz = document.getElementById('raiz');
 
+// Instalar el chat del colegio directamente desde esta página (sin pasar por otra pantalla)
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+let evento = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); evento = e; });
+window.addEventListener('appinstalled', () => { evento = null; const d = document.getElementById('ayuda'); if (d) { d.hidden = false; d.textContent = '✅ ¡Listo! Busca el ícono del colegio en la pantalla de tu celular y ábrelo para entrar con tu DNI.'; } });
+const pasos = () => {
+  const ua = navigator.userAgent;
+  if (/FBAN|FBAV|Instagram|WhatsApp|Line\/|; wv\)|TikTok|musical_ly/i.test(ua)) return 'Estás dentro de otra app. Abre este mismo enlace en Chrome (Android) o Safari (iPhone) para poder instalar.';
+  if (/iphone|ipad|ipod/i.test(ua)) return 'En iPhone: abre esta página en Safari, toca el botón Compartir (el cuadrito con la flecha) y luego «Añadir a pantalla de inicio».';
+  if (/android/i.test(ua)) return 'En Android: toca los tres puntos ⋮ de Chrome y luego «Instalar app» (o «Añadir a pantalla de inicio»).';
+  return 'En la computadora: toca el ícono de instalar que aparece a la derecha de la barra de direcciones de Chrome.';
+};
+document.addEventListener('click', async (ev) => {
+  if (!ev.target.closest('#instalar')) return;
+  ev.preventDefault();
+  const ayuda = document.getElementById('ayuda');
+  if (evento) { try { evento.prompt(); await evento.userChoice; } catch { /* cancelado */ } evento = null; return; }
+  ayuda.hidden = false; ayuda.textContent = pasos();
+});
+
 (async () => {
   let c;
   try {
@@ -23,7 +43,9 @@ const raiz = document.getElementById('raiz');
     <header class="cab">${c.logo ? `<img src="${esc(c.logo)}" alt="">` : ''}<h1>${esc(c.nombre)}</h1><p>Chat virtual del colegio</p></header>
     <div class="acciones">
       <a class="btn p" href="/admision/${encodeURIComponent(c.slug)}"><span class="i">💬</span><span>Hablar con el colegio<small>Información, requisitos y visitas. Responde a cualquier hora.</small></span></a>
-      <a class="btn" href="/e/${encodeURIComponent(c.slug)}"><span class="i">📲</span><span>Instalar el chat en mi celular<small>Para padres, profesores y personal del colegio. Se entra una vez con tu DNI.</small></span></a>
+      <a class="btn" id="instalar" href="/e/${encodeURIComponent(c.slug)}"><span class="i">📲</span><span>Instalar el chat en mi celular<small>Para padres, profesores y personal del colegio. Se entra una vez con tu DNI.</small></span></a>
+      <p class="ayuda" id="ayuda" hidden></p>
+      <a class="enlace" href="/e/${encodeURIComponent(c.slug)}">Ya lo tengo instalado o prefiero usarlo desde el navegador</a>
     </div>
     <div class="qr">${qrSvg(pagina, { escala: 6, margen: 2 })}<p>Escanea este código con la cámara de tu celular</p></div>
     ${dato ? `<p class="datos">${dato}</p>` : ''}

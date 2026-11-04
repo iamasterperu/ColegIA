@@ -12,14 +12,14 @@ const servir = (ruta) => {
 };
 
 // App de un colegio (/e/<colegio>): la misma app, con el manifiesto, el ícono y el nombre de ese colegio
-async function paginaColegio(env, slug) {
+async function paginaColegio(env, slug, base = '/index.html') {
   const c = await env.DB.prepare('SELECT slug, nombre, nombre_corto, color_primario FROM colegios WHERE slug = ? AND suspendido = 0').bind(slug).first().catch(() => null);
   if (!c) return servir('/index.html');
   const corto = esc(nombreCorto(c));
-  const texto = ARCHIVOS['/index.html'].texto
+  const texto = ARCHIVOS[base].texto
     .replace('/manifest.webmanifest', `/i/${c.slug}/manifest.webmanifest`)
     .replace('/icons/apple-touch-icon.png', `/i/${c.slug}/icono-180.png`)
-    .replace('<title>ColegIA</title>', `<title>${esc(c.nombre)}</title>`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(c.nombre)}</title>`)
     .replace('content="#00a884"', `content="${esc(c.color_primario || '#00a884')}"`)
     .replace('apple-mobile-web-app-title" content="ColegIA"', `apple-mobile-web-app-title" content="${corto}"`)
     .replace('Cargando ColegIA…', 'Cargando…');
@@ -32,7 +32,8 @@ export default {
     if (/^\/(api|webhook|d|c|i|carta)\//.test(pathname)) return app.fetch(request, env, ctx);
     const dePagina = /^\/e\/([a-z0-9-]{3,30})\/?$/.exec(pathname);
     if (dePagina) return paginaColegio(env, dePagina[1]);
-    if (/^\/colegio\/[a-z0-9-]{3,30}\/?$/.exec(pathname)) return servir('/colegio.html');
+    const dePublica = /^\/colegio\/([a-z0-9-]{3,30})\/?$/.exec(pathname);
+    if (dePublica) return paginaColegio(env, dePublica[1], '/colegio.html');
     // La portada es la página pública de ColegIA; la app (inicio de sesión) vive en /entrar
     return servir(pathname === '/' ? '/colegia.html' : pathname === '/entrar' ? '/index.html' : pathname === '/panel-iamaster' ? '/dueno.html' : pathname.startsWith('/admision/') ? '/admision.html' : pathname);
   },
