@@ -73,6 +73,9 @@ h2{{font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:0 0 10px;letter-spa
 .seg h2{{color:#fff}} .seg .sub{{color:#C7D0E0}}
 .seg ul{{margin:0;padding-left:20px;max-width:46em}} .seg li{{margin-bottom:8px}}
 .cta{{text-align:center}}
+.planes{{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:18px 0}}
+.plan{{background:var(--w);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}}
+.plan b{{font-size:.95rem;color:var(--navy)}} .plan span{{font-size:1.5rem;font-weight:800;color:var(--vio)}} .plan small{{font-size:.8rem;font-weight:500;color:var(--muted)}}
 .cta .btns{{justify-content:center}}
 footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}}
 :focus-visible{{outline:3px solid var(--amb);outline-offset:2px}}
@@ -126,9 +129,23 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
   </ul>
 </div></section>
 
+<section class="alt" id="planes"><div class="wrap">
+  <h2>Planes mensuales</h2>
+  <p class="sub">Todo incluido en cada plan: chat, panel por cargo, admisión, cobranza, exámenes y avisos al celular. El precio depende de cuántos alumnos tiene el colegio, no de cuánto lo usa.</p>
+  <div class="planes">
+    <div class="plan"><b>Hasta 100 alumnos</b><span>S/ 149 <small>al mes</small></span></div>
+    <div class="plan"><b>Hasta 200 alumnos</b><span>S/ 249 <small>al mes</small></span></div>
+    <div class="plan"><b>Hasta 300 alumnos</b><span>S/ 349 <small>al mes</small></span></div>
+    <div class="plan"><b>Hasta 400 alumnos</b><span>S/ 449 <small>al mes</small></span></div>
+    <div class="plan"><b>Hasta 500 alumnos</b><span>S/ 549 <small>al mes</small></span></div>
+    <div class="plan"><b>Más de 500 alumnos</b><span>Se cotiza</span></div>
+  </div>
+  <p class="note" style="color:var(--muted)">Los primeros 30 días son gratis y sin datos de alumnos.</p>
+</div></section>
+
 <section class="cta" id="contacto"><div class="wrap">
   <h2>Pruébalo con tu colegio</h2>
-  <p class="sub" style="margin-inline:auto">Precio fijo mensual por colegio, según su tamaño. No se cobra por alumno.</p>
+  <p class="sub" style="margin-inline:auto">Prueba 30 días gratis. Después, un precio fijo mensual según el tamaño del colegio.</p>
   <div class="btns"><a class="btn p" href="/entrar" style="background:var(--navy);color:#fff">Ingresar a mi colegio</a><a class="btn s" href="mailto:iamasterperu@gmail.com" style="border-color:var(--navy);color:var(--navy)">iamasterperu@gmail.com</a></div>
   <p class="note" style="color:var(--muted);margin-inline:auto">IAMASTER · Lima, Perú</p>
 </div></section>
