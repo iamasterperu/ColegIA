@@ -64,7 +64,7 @@ export function pdfExamen(doc, colegio, parte) {
   const ex = doc.contenido;
   const pdf = new DocumentoPdf({ titulo: ex.titulo, pie: `${colegio.nombre} · ColegIA`, color: colegio.color_primario });
   pdf.parrafo(colegio.nombre.toUpperCase(), { tam: 9, negrita: true, color: '0.4 g' });
-  const etiqueta = { a: 'Versión A', b: 'Versión B', solucionario: 'Solucionario (versiones A y B)', rubrica: 'Rúbrica de evaluación' }[parte];
+  const etiqueta = { a: 'Versión A', b: 'Versión B', solucionario: 'Solucionario (versiones A y B)', rubrica: 'Rúbrica de evaluación', a_espacio: 'Versión A para responder', b_espacio: 'Versión B para responder' }[parte];
   pdf.titular(`${ex.titulo} — ${etiqueta}`, 16);
   if (parte === 'a' || parte === 'b') {
     pdf.parrafo(`${ex.curso || doc.curso || ''}   ${ex.grado || doc.grado || ''}`, { tam: 10, color: '0.35 g' });
@@ -79,6 +79,20 @@ export function pdfExamen(doc, colegio, parte) {
       pdf.parrafo(`${i + 1}. ${q.p}`, { negrita: true, tam: 11 });
       q.o.forEach((o, j) => pdf.parrafo(`${LETRAS[j]}) ${o}`, { sangria: 16, tam: 11 }));
       pdf.espacio(6);
+    });
+  } else if (parte === 'a_espacio' || parte === 'b_espacio') {
+    pdf.parrafo(`${ex.curso || doc.curso || ''}   ${ex.grado || doc.grado || ''}`, { tam: 10, color: '0.35 g' });
+    pdf.espacio(6);
+    pdf.parrafo('Nombre: ____________________________________   Sección: ______   Fecha: ___________', { tam: 10 });
+    pdf.espacio(4);
+    pdf.parrafo('Instrucciones: lee cada pregunta y escribe tu procedimiento y tu respuesta en los renglones.', { tam: 10, color: '0.3 g' });
+    pdf.linea();
+    const preguntas = parte === 'a_espacio' ? ex.preguntas : ex.versionB;
+    preguntas.forEach((q, i) => {
+      pdf.reservar(30 + 3 * 22);
+      pdf.parrafo(`${i + 1}. ${q.p}`, { negrita: true, tam: 11 });
+      pdf.lineasRespuesta(3);
+      pdf.espacio(8);
     });
   } else if (parte === 'solucionario') {
     for (const [nombre, preguntas] of [['Versión A', ex.preguntas], ['Versión B', ex.versionB]]) {

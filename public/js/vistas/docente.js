@@ -35,7 +35,7 @@ export async function mostrar(vista, [id]) {
         <tbody>${docs.map((d) => html`<tr>
           <td>${d.id}</td><td>${TIPO[d.tipo]}</td><td><a href="#/docente/${d.id}">${d.titulo}</a><div class="pequeno">${d.curso || ''} ${d.grado || ''}</div></td>
           <td>${d.autor}</td><td>${fecha(d.creado_en, true)}</td><td class="num">${d.tipo === 'examen' ? d.calificados : '—'}</td>
-          <td><div class="chips">${d.pdfs.map((p) => html`<a class="chip" href="${p.url}" target="_blank" rel="noopener">${p.nombre}</a>`)}</div></td></tr>`)}</tbody></table></div>`)
+          <td><div class="chips">${d.pdfs.map((p) => html`<a class="chip" href="${p.url}" target="_blank" rel="noopener">${p.nombre}</a><a class="chip" href="${p.url}?descargar=1" download title="Descargar ${p.nombre}">⬇</a>`)}</div></td></tr>`)}</tbody></table></div>`)
         : vacio('Todavía no hay documentos. Pide uno en el chat: "examen de 10 preguntas de fracciones para 2°".')}
     </section>`;
   const estado = $('#f-estado', vista);
@@ -102,7 +102,7 @@ async function detalle(vista, id) {
     <p class="pequeno"><a href="#/docente">← Asistente docente</a></p>
     <div class="encabezado"><div><h1>${d.titulo}</h1><p>${TIPO[d.tipo]} · código ${d.id} · ${fecha(d.creado_en, true)}</p>
       <p class="pequeno">Pedido: “${d.pedido}”</p></div>
-      <div class="chips">${d.pdfs.map((p) => html`<a class="btn" href="${p.url}" target="_blank" rel="noopener">${p.nombre} (PDF)</a>`)}</div></div>
+      <div class="chips">${d.pdfs.map((p) => html`<a class="btn" href="${p.url}" target="_blank" rel="noopener">${p.nombre} (PDF)</a><a class="btn btn-fantasma" href="${p.url}?descargar=1" download>⬇ Descargar</a>`)}</div></div>
     ${d.tipo === 'examen' && ['direccion', 'profesor'].includes(sesion.usuario.rol) ? crudo(html`<section class="tarjeta" id="calif"><h2>Calificar con fotos</h2>
       <p class="pequeno">Cuando tus alumnos terminen y tú revises los exámenes, toma una foto de cada hoja calificada (que se vea el nombre y la nota, o las respuestas marcadas) y súbelas aquí. Si el examen tiene varias hojas, sube las fotos en orden: la hoja con el nombre primero y después las otras hojas de ese mismo alumno; ColegIA las junta solas.
         ColegIA lee el nombre, la nota y el porcentaje, y marca quién sacó buena nota y quién necesita ayuda. Tú solo revisas y guardas.</p>

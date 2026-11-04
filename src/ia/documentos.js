@@ -14,7 +14,7 @@ export async function guardarDocumento(env, colegioId, usuarioId, d) {
 }
 
 export const PARTES = {
-  examen: [['a', 'Versión A'], ['b', 'Versión B'], ['solucionario', 'Solucionario'], ['rubrica', 'Rúbrica']],
+  examen: [['a', 'Versión A'], ['b', 'Versión B'], ['a_espacio', 'Versión A para responder'], ['b_espacio', 'Versión B para responder'], ['solucionario', 'Solucionario'], ['rubrica', 'Rúbrica']],
   sesion: [['sesion', 'Sesión de aprendizaje']],
   material: [['texto', 'Material adaptado']],
   texto: [['texto', 'Documento']],
@@ -41,7 +41,7 @@ export function rutasDocumentosPublicos(r) {
     return new Response(bytes, {
       headers: {
         'content-type': 'application/pdf',
-        'content-disposition': `inline; filename="${nombreArchivo(doc.titulo, parte)}"`,
+        'content-disposition': `${ctx.url.searchParams.get('descargar') ? 'attachment' : 'inline'}; filename="${nombreArchivo(doc.titulo, parte)}"`,
         'cache-control': 'private, max-age=300',
         'x-robots-tag': 'noindex',
       },
