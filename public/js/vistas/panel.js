@@ -98,7 +98,7 @@ export async function mostrar(vista) {
         <div class="tarjeta-titulo"><h2>Ley 29733</h2><a class="btn btn-chico" href="#/datos">Gestionar</a></div>
         ${['whatsapp', 'salud', 'imagen'].map((k) => {
           const x = cons[k] || { si: 0, total: 0 };
-          return html`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><span>Autorizan ${k === 'whatsapp' ? 'WhatsApp' : k === 'salud' ? 'datos de salud' : 'uso de imagen'}</span><strong>${x.si || 0}</strong></div>
+          return html`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><span>Autorizan ${k === 'whatsapp' ? 'el chat' : k === 'salud' ? 'datos de salud' : 'uso de imagen'}</span><strong>${x.si || 0}</strong></div>
             <div class="medidor"><div style="width:${x.total ? Math.round((x.si / x.total) * 100) : 0}%"></div></div>
             <span class="pequeno">${x.total ? `${Math.round((x.si / x.total) * 100)}% de las respuestas registradas` : 'Sin respuestas'}</span></div>`;
         })}

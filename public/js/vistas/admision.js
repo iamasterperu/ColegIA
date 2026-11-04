@@ -6,7 +6,7 @@ const ESTADOS = { nuevo: 'Nuevo', contactado: 'Contactado', matriculado: 'Matric
 const VISITAS = { agendada: 'Agendada', realizada: 'Realizada', cancelada: 'Cancelada' };
 
 export async function mostrar(vista) {
-  vista.innerHTML = html`<div class="encabezado"><div><h1>Admisiones</h1><p>Familias que preguntaron por WhatsApp y visitas agendadas. Solo se guarda lo que la familia escribe voluntariamente.</p></div></div><div id="cont">${cargando()}</div>`;
+  vista.innerHTML = html`<div class="encabezado"><div><h1>Admisiones</h1><p>Familias que preguntaron por el chat de admisión y visitas agendadas. Solo se guarda lo que la familia escribe voluntariamente.</p></div></div><div id="cont">${cargando()}</div>`;
   const cargar = async () => {
     const { leads, visitas } = await api.get('/api/admision');
     const sel = (mapa, actual, clase, id) => html`<select class="${clase}" data-id="${id}" aria-label="Estado">${Object.entries(mapa).map(([k, t]) => html`<option value="${k}" ${k === actual ? crudo('selected') : ''}>${t}</option>`)}</select>`;

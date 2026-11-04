@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { html, crudo, $, fecha, cargando, vacio, aviso, conBoton, modal, telefonoBonito } from '../ui.js';
 import { puede, sesion, icono } from '../app.js';
 
-const NOMBRE_FIN = { whatsapp: 'WhatsApp', salud: 'Datos de salud', imagen: 'Uso de imagen' };
+const NOMBRE_FIN = { whatsapp: 'Chat del colegio', salud: 'Datos de salud', imagen: 'Uso de imagen' };
 const TIPO_ARCO = {
   acceso: 'Acceso: saber qué datos tienen', rectificacion: 'Rectificación: corregir un dato',
   cancelacion: 'Cancelación: borrar mis datos', oposicion: 'Oposición: que dejen de usar un dato',

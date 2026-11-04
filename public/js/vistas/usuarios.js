@@ -62,7 +62,7 @@ export async function mostrar(vista) {
     });
   });
 
-  $('#bienvenida-personal', vista).addEventListener('click', (e) => confirm('¿Enviar a todo el personal activo con celular el menú del asistente por WhatsApp?') && conBoton(e.target, async () => {
+  $('#bienvenida-personal', vista).addEventListener('click', (e) => confirm('¿Enviar a todo el personal activo con celular el aviso de bienvenida al chat del colegio?') && conBoton(e.target, async () => {
     let ok = 0;
     for (const u of usuarios.filter((x) => x.telefono && x.rol !== 'padre' && x.activo)) {
       const r = await api.post('/api/whatsapp/bienvenida', { usuario_id: u.id });
@@ -81,7 +81,7 @@ export async function mostrar(vista) {
     if (bv) {
       await conBoton(bv, async () => {
         const r = await api.post('/api/whatsapp/bienvenida', { usuario_id: bv.dataset.bienvenida });
-        aviso(r.estado === 'error' ? `WhatsApp no lo entregó: ${r.error}` : r.canal === 'cloud' ? 'Bienvenida enviada por WhatsApp' : 'Bienvenida enviada (modo simulado: mírala en el chat de prueba)', r.estado === 'error' ? 'error' : 'ok');
+        aviso(r.estado === 'error' ? `No se pudo entregar: ${r.error}` : r.canal === 'cloud' ? 'Bienvenida enviada al chat' : 'Bienvenida enviada (modo simulado: mírala en el chat de prueba)', r.estado === 'error' ? 'error' : 'ok');
       });
       return;
     }
@@ -123,7 +123,7 @@ export async function mostrar(vista) {
 
 function mostrarEnlace(enlace) {
   const { raiz } = modal(html`<h2>Enlace para crear la contraseña</h2>
-    <p>Envíaselo solo a esa persona (por WhatsApp, por ejemplo). Sirve una vez y vence en 7 días.</p>
+    <p>Envíaselo solo a esa persona (por el medio que prefieras). Sirve una vez y vence en 7 días.</p>
     <p class="pequeno" style="word-break:break-all;background:#f4f5f8;padding:10px;border-radius:8px">${enlace}</p>
     <button class="btn btn-primario" id="copiar-enlace">Copiar enlace</button>`, { ancho: 520 });
   $('#copiar-enlace', raiz).addEventListener('click', async (e) => { try { await navigator.clipboard.writeText(enlace); e.target.textContent = '¡Copiado!'; } catch { e.target.textContent = 'Copia el texto a mano'; } });

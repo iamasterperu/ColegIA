@@ -81,7 +81,7 @@ export async function mostrar(vista, [tipo]) {
         <input type="file" accept=".xlsx,.csv,.txt" id="archivo"></label>
       <div class="tarjeta"><h2>Plantilla</h2><p class="pequeno">Columnas que reconocemos automáticamente (no importa el orden ni las tildes).</p>
         <button class="btn" id="plantilla">Descargar plantilla CSV</button>
-        ${actual === 'personal' ? crudo('<p class="nota-legal" style="margin-top:10px"><span>El <strong>celular</strong> es lo que importa: con él el asistente de WhatsApp reconoce a cada persona y le da el menú de su cargo. A los profesores, indica sus secciones (solo verán esos alumnos). Se crean sin contraseña web: si alguien necesita entrar a la web, asígnasela en <strong>Usuarios → Editar</strong>.</span></p>') : ''}
+        ${actual === 'personal' ? crudo('<p class="nota-legal" style="margin-top:10px"><span>El <strong>celular</strong> es lo que importa: con su DNI y celular cada persona entra a la app y el chat del colegio la reconoce y le muestra el panel de su cargo. A los profesores, indica sus secciones (solo verán esos alumnos). Se crean sin contraseña: dirección, secretaría y contabilidad pueden crear la suya al entrar.</span></p>') : ''}
         ${actual === 'alumnos' ? crudo('<p class="nota-legal" style="margin-top:10px">“autoriza_whatsapp = SI” solo si el apoderado firmó la autorización en la ficha de matrícula. Queda registrado como consentimiento por importación.</p>') : ''}
       </div>
     </div>

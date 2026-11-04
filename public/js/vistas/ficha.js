@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { html, crudo, $, soles, fecha, telefonoBonito, modal, aviso, conBoton, cargando, ROL_NOMBRE, ACCIONES } from '../ui.js';
 import { icono, puede } from '../app.js';
 
-const FIN = { whatsapp: 'WhatsApp', salud: 'Salud', imagen: 'Imagen', tutor_ia: 'Tutor virtual' };
+const FIN = { whatsapp: 'Chat del colegio', salud: 'Salud', imagen: 'Imagen', tutor_ia: 'Tutor virtual' };
 
 function claseNota(n) {
   if (/^\d+$/.test(n)) return Number(n) < 11 ? 'nota-baja' : '';

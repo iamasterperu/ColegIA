@@ -39,7 +39,7 @@ async function detalle(vista, id) {
         ${puede('utiles.editar') ? crudo(html`
           <button class="btn" id="editar">Editar</button>
           <button class="btn" id="publicar">${l.publicada ? 'Despublicar' : 'Publicar'}</button>
-          ${l.publicada ? crudo('<button class="btn btn-primario" id="avisar">Avisar por WhatsApp</button>') : ''}
+          ${l.publicada ? crudo('<button class="btn btn-primario" id="avisar">Avisar por el chat</button>') : ''}
           <button class="btn btn-peligro" id="borrar">Borrar</button>`) : ''}
       </div></div>
     <div class="tabla-caja"><table>
@@ -49,7 +49,7 @@ async function detalle(vista, id) {
   $('#editar', vista)?.addEventListener('click', () => editor(vista, l));
   $('#publicar', vista)?.addEventListener('click', (e) => conBoton(e.target, async () => {
     await api.post(`/api/utiles/${l.id}/publicar`, { publicada: !l.publicada });
-    aviso(l.publicada ? 'Lista despublicada' : 'Lista publicada: los padres ya pueden verla y pedirla por WhatsApp');
+    aviso(l.publicada ? 'Lista despublicada' : 'Lista publicada: los padres ya pueden verla y pedirla por el chat del colegio');
     detalle(vista, id);
   }));
   $('#borrar', vista)?.addEventListener('click', (e) => confirm('¿Borrar esta lista?') && conBoton(e.target, async () => {
@@ -63,7 +63,7 @@ async function detalle(vista, id) {
       total += r.enviados;
       if (!r.quedan) break;
     }
-    aviso(total ? `Se avisó a ${total} apoderados que autorizaron WhatsApp` : 'Todos los apoderados con autorización ya fueron avisados');
+    aviso(total ? `Se avisó a ${total} apoderados por el chat del colegio` : 'Todos los apoderados con autorización ya fueron avisados');
   }));
 }
 

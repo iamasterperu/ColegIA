@@ -27,7 +27,7 @@ export async function mostrar(raiz) {
       <li>Del alumno: nombres, código, DNI, fecha de nacimiento, grado y sección, notas, asistencia y pagos.</li>
       <li>Del apoderado: nombres, DNI, celular, correo y parentesco.</li>
       <li>Datos sensibles de salud (alergias, condiciones, seguro, contacto de emergencia), <strong>solo si los autorizas</strong>.</li>
-      <li>Mensajes y notas de voz que envíes al WhatsApp del colegio.</li>
+      <li>Mensajes y notas de voz que envíes al chat del colegio.</li>
       <li>Registro de accesos: quién consultó qué dato y cuándo, para tu seguridad.</li>
     </ul>
 

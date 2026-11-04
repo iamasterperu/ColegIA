@@ -133,7 +133,7 @@ async function activarCumples(vista) {
       faltan = e.sin_fecha.lista;
       $('#cu-estado', vista).innerHTML = html`
         <p>🎂 Con fecha registrada: <strong>${e.alumnos.con_fecha}/${e.alumnos.total}</strong> alumnos · <strong>${e.apoderados.con_fecha}/${e.apoderados.total}</strong> padres · <strong>${e.personal.con_fecha}/${e.personal.total}</strong> personal</p>
-        ${e.sin_saludo.total ? html`<details><summary>⚠️ ${e.sin_saludo.total} persona(s) con fecha que quedarían sin saludo (falta celular o autorización de WhatsApp)</summary><ul>${e.sin_saludo.lista.map((x) => html`<li>${x.nombre} <span class="pequeno">(${x.tipo}: ${x.motivo})</span></li>`)}</ul></details>` : ''}
+        ${e.sin_saludo.total ? html`<details><summary>⚠️ ${e.sin_saludo.total} persona(s) con fecha que quedarían sin saludo (falta celular o autorización del chat)</summary><ul>${e.sin_saludo.lista.map((x) => html`<li>${x.nombre} <span class="pequeno">(${x.tipo}: ${x.motivo})</span></li>`)}</ul></details>` : ''}
         ${e.sin_fecha.total ? html`<details><summary>Faltan fechas de ${e.sin_fecha.total} persona(s)</summary><ul>${e.sin_fecha.lista.map((x) => html`<li>${x.nombre} <span class="pequeno">(${x.tipo})</span></li>`)}${e.sin_fecha.total > e.sin_fecha.lista.length ? html`<li class="pequeno">… y más</li>` : ''}</ul></details>` : html`<p>✅ Todos tienen fecha registrada.</p>`}`.toString();
     } catch (err) { $('#cu-estado', vista).textContent = err.message; }
   };
