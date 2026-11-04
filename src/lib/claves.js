@@ -3,6 +3,8 @@
 // El número se guarda en el hash para poder subirlo luego.
 import { hex, igualSeguro } from './cripto.js';
 
+// Todas las personas pueden crear su propia contraseña (opcional): padres, profesores, dirección, secretaría y contabilidad
+export const ROLES_CON_CLAVE = ['direccion', 'secretaria', 'contabilidad', 'profesor', 'padre'];
 export const ITERACIONES = 5000;
 
 async function derivar(clave, sal, iteraciones) {

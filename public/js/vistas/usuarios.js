@@ -99,7 +99,7 @@ export async function mostrar(vista) {
         ${u.rol !== 'padre' ? crudo(html`<label>DNI<input name="dni" value="${u.dni || ''}" inputmode="numeric"></label><label>Celular<input name="telefono" value="${u.telefono || ''}" inputmode="tel"></label>`) : ''}
         ${u.rol === 'profesor' ? crudo(html`<label>Secciones<input name="secciones" value="${u.secciones || ''}"></label>`) : ''}
         <label>Nueva contraseña (opcional)<input name="clave" minlength="8" autocomplete="new-password"></label>
-        ${['direccion', 'secretaria', 'contabilidad'].includes(u.rol) ? crudo('<label class="check"><input type="checkbox" name="quitar_clave"> Olvidó su contraseña: quitarla para que cree una nueva al entrar</label>') : ''}
+        ${true ? crudo('<label class="check"><input type="checkbox" name="quitar_clave"> Olvidó su contraseña: quitarla para que cree una nueva al entrar</label>') : ''}
         <button class="btn btn-primario">Guardar</button>
       </form>`, { ancho: 480 });
     $('#f-e', raiz).addEventListener('submit', async (ev) => {

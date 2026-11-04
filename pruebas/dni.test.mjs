@@ -33,7 +33,10 @@ await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '9870
 await assert.rejects(() => go({ colegio: 'cole', dni: '11111111', celular: '987000001', clave: 'Equivocada1' }), /Contraseña incorrecta/);
 r = await go({ colegio: 'cole', dni: '11111111', celular: '987000001', clave: 'Segura2026' });
 assert.equal((await r.json()).rol, 'direccion', 'entra con DNI + celular + contraseña');
-// Los padres no usan contraseña aunque la envíen
+// Los padres también pueden crear su contraseña (opcional); sin crearla entran solo con DNI + celular
+r = await go({ colegio: 'cole', dni: '22222222', celular: '987000002' });
+assert.equal((await r.json()).rol, 'padre');
 r = await go({ colegio: 'cole', dni: '22222222', celular: '987000002', crear_clave: 'Segura2026' });
-assert.equal(DB._raw.prepare("SELECT clave FROM usuarios WHERE rol='padre'").get().clave, 'pendiente');
+assert.ok(String(DB._raw.prepare("SELECT clave FROM usuarios WHERE rol='padre'").get().clave).startsWith('pbkdf2$'));
+await assert.rejects(() => go({ colegio: 'cole', dni: '22222222', celular: '987000002' }), /Escribe tu contraseña/);
 console.log('OK dni');

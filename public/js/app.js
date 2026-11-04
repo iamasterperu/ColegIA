@@ -168,7 +168,7 @@ async function pantallaIngreso(mensaje) {
     } catch (er) { aviso(er.message, 'error'); } finally { boton.disabled = false; }
   };
   // Dirección, secretaría y contabilidad pueden crear su propia contraseña
-  const CON_CLAVE = ['direccion', 'secretaria', 'contabilidad'];
+  const CON_CLAVE = ['direccion', 'secretaria', 'contabilidad', 'profesor', 'padre'];
   const zonaClave = $('#zona-clave'), zonaCrear = $('#zona-crear'), botonCrear = $('#alternar-crear');
   const mostrarClave = () => {
     const conClave = CON_CLAVE.includes(formDni.rol.value);

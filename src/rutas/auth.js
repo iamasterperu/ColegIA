@@ -1,5 +1,5 @@
 import { json, cuerpo, falla, cookieSesion, ip, leerCookie } from '../lib/http.js';
-import { verificarClave, hashClave, validarClaveNueva } from '../lib/claves.js';
+import { verificarClave, hashClave, validarClaveNueva, ROLES_CON_CLAVE } from '../lib/claves.js';
 import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { PERMISOS, ROLES } from '../lib/permisos.js';
 import { DURACION_SESION, DURACION_RECORDADA, exigir } from '../lib/sesion.js';
@@ -110,7 +110,7 @@ export function rutasAuth(r) {
     return json({
       usuario: {
         id: u.id, nombre: u.nombre, email: correoPropio, rol: u.rol, rol_nombre: ROLES[u.rol], secciones,
-        puede_clave: ['direccion', 'secretaria', 'contabilidad'].includes(u.rol), tiene_clave: String(yo?.clave || '').startsWith('pbkdf2$'),
+        puede_clave: ROLES_CON_CLAVE.includes(u.rol), tiene_clave: String(yo?.clave || '').startsWith('pbkdf2$'),
         dni: u.rol === 'padre' ? yo?.ap_dni : yo?.dni, telefono: u.rol === 'padre' ? yo?.ap_telefono : yo?.telefono,
       },
       permisos: PERMISOS[u.rol],
@@ -125,7 +125,7 @@ export function rutasAuth(r) {
     exigir(ctx);
     const { actual, nueva } = await cuerpo(ctx.request, 4000);
     const fila = await env.DB.prepare('SELECT clave FROM usuarios WHERE id = ?').bind(ctx.usuario.id).first();
-    if (!['direccion', 'secretaria', 'contabilidad'].includes(ctx.usuario.rol)) throw falla(403, 'Tu cuenta no usa contraseña');
+    if (!ROLES_CON_CLAVE.includes(ctx.usuario.rol)) throw falla(403, 'Tu cuenta no usa contraseña');
     // Si aún no tiene contraseña (entraba solo con DNI y celular), la crea sin pedir la actual
     if (String(fila.clave || '').startsWith('pbkdf2$') && !(await verificarClave(String(actual || ''), fila.clave))) throw falla(400, 'La contraseña actual no es correcta');
     const error = validarClaveNueva(nueva);

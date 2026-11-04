@@ -5,13 +5,12 @@ import { sha256, tokenAleatorio } from '../lib/cripto.js';
 import { normalizarTelefono } from '../lib/texto.js';
 import { sentenciaAuditoria } from '../lib/auditoria.js';
 import { CLAVE_PENDIENTE } from '../lib/invitaciones.js';
-import { hashClave, verificarClave, validarClaveNueva } from '../lib/claves.js';
+import { hashClave, verificarClave, validarClaveNueva, ROLES_CON_CLAVE } from '../lib/claves.js';
 
 const MAX_FALLOS = 5;
 const DURACION = 365 * 86400; // el celular queda registrado: entra con un toque durante un año
 // Dirección, secretaría y contabilidad ven datos sensibles: pueden crear su propia contraseña.
 // Quien la crea, desde entonces entra con DNI + celular + contraseña (el celular solo ya no basta).
-export const ROLES_CON_CLAVE = ['direccion', 'secretaria', 'contabilidad'];
 export const tieneClave = (u) => String(u?.clave || '').startsWith('pbkdf2$');
 const MENSAJE = 'No encontramos ese DNI y celular en el colegio. Revisa los datos o pide a secretaría que los registre.';
 
