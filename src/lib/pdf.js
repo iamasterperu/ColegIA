@@ -126,13 +126,10 @@ export class DocumentoPdf {
     this.espacio(8);
   }
 
-  // Renglones para que el alumno escriba su respuesta
-  lineasRespuesta(n, alto = 22) {
-    for (let i = 0; i < n; i++) {
-      if (this.y - alto < MARGEN + 30) this.nuevaPagina();
-      this.y -= alto;
-      this.ops.push(`0.72 G 0.5 w ${MARGEN + 16} ${this.y} m ${ANCHO - MARGEN} ${this.y} l S 0 G`);
-    }
+  // Espacio en blanco para que el alumno escriba su respuesta
+  espacioRespuesta(alto) {
+    if (this.y - alto < MARGEN + 30) this.nuevaPagina();
+    this.y -= alto;
   }
 
   // Asegura espacio para un bloque (pregunta con opciones) sin partirlo

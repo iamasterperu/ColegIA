@@ -85,14 +85,13 @@ export function pdfExamen(doc, colegio, parte) {
     pdf.espacio(6);
     pdf.parrafo('Nombre: ____________________________________   Sección: ______   Fecha: ___________', { tam: 10 });
     pdf.espacio(4);
-    pdf.parrafo('Instrucciones: lee cada pregunta y escribe tu procedimiento y tu respuesta en los renglones.', { tam: 10, color: '0.3 g' });
+    pdf.parrafo('Instrucciones: lee cada pregunta y escribe tu procedimiento y tu respuesta en el espacio en blanco.', { tam: 10, color: '0.3 g' });
     pdf.linea();
     const preguntas = parte === 'a_espacio' ? ex.preguntas : ex.versionB;
     preguntas.forEach((q, i) => {
-      pdf.reservar(30 + 3 * 22);
+      pdf.reservar(30 + 90);
       pdf.parrafo(`${i + 1}. ${q.p}`, { negrita: true, tam: 11 });
-      pdf.lineasRespuesta(3);
-      pdf.espacio(8);
+      pdf.espacioRespuesta(90);
     });
   } else if (parte === 'solucionario') {
     for (const [nombre, preguntas] of [['Versión A', ex.preguntas], ['Versión B', ex.versionB]]) {
