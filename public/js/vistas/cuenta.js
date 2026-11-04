@@ -22,6 +22,12 @@ export async function mostrar(vista, _, sesion) {
       <p class="pequeno">Estos datos los registró el colegio. Si alguno está mal, pídele a secretaría que lo corrija.</p>
       <button class="btn btn-peligro" id="cerrar-sesion" type="button">Cerrar sesión</button>
     </section>
+    <section class="tarjeta"><h2>Avisos en el celular</h2>
+      <p class="pequeno">Cuando llegue un mensaje nuevo, el ícono de la app muestra el globito y suena la notificación, aunque la app esté cerrada.</p>
+      <div id="zona-avisos"></div>
+      <button class="btn" id="probar-aviso" type="button">Probar aviso ahora</button>
+      <p class="pequeno" id="res-aviso" hidden></p>
+    </section>
     ${u.puede_clave ? crudo(html`<section class="tarjeta"><h2>${u.tiene_clave ? 'Cambiar mi contraseña' : 'Crear mi contraseña'}</h2>
       <p class="pequeno">${u.tiene_clave ? 'Para entrar tendrás que usar tu DNI, tu celular y tu contraseña.' : 'Es opcional. Si la creas, para entrar tendrás que usar tu DNI, tu celular y tu contraseña.'}</p>
       <form class="form" id="f-clave">
@@ -30,6 +36,19 @@ export async function mostrar(vista, _, sesion) {
         <label>Repite la contraseña<input name="otra" type="password" autocomplete="new-password" minlength="8" required></label>
         <button class="btn btn-primario" type="submit">Guardar contraseña</button>
       </form></section>`) : ''}`;
+  import('../pwa.js').then((m) => m.botonAvisos(vista.querySelector('#zona-avisos'), { clase: 'btn btn-primario' }));
+  vista.querySelector('#probar-aviso').addEventListener('click', async (e) => {
+    const res = vista.querySelector('#res-aviso');
+    await conBoton(e.target, async () => {
+      try {
+        const r = await api.post('/api/push/probar', {});
+        res.textContent = r.ok
+          ? `Aviso enviado a ${r.celulares} celular(es). Cierra la app y espera unos segundos: debe sonar y mostrar el globito. (Respuesta del celular: ${(r.estados || []).join(', ') || '—'})`
+          : r.mensaje;
+      } catch (er) { res.textContent = er.message; }
+      res.hidden = false;
+    });
+  });
   vista.querySelector('#f-clave')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.target));

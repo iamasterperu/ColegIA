@@ -16,7 +16,7 @@ self.addEventListener('push', (e) => {
     try { const r = await fetch('/api/chat/ultimo', { credentials: 'same-origin' }); if (r.ok) d = await r.json(); } catch { /* sin conexión: aviso genérico */ }
     try { await self.navigator.setAppBadge?.(d.n || 1); } catch { /* sin soporte */ }
     await self.registration.showNotification(d.titulo, {
-      body: d.cuerpo, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: 'colegia-chat', renotify: true, data: { url: '/entrar#/chat' },
+      body: d.cuerpo, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png', tag: 'colegia-chat', renotify: true, vibrate: [200, 100, 200], silent: false, requireInteraction: false, data: { url: '/entrar#/chat' },
     });
   })());
 });
@@ -28,5 +28,17 @@ self.addEventListener('notificationclick', (e) => {
     const una = abiertas.find((c) => c.url.includes('/entrar'));
     if (una) { await una.focus(); una.navigate?.(destino).catch(() => {}); return; }
     await self.clients.openWindow(destino);
+  })());
+});
+
+// Si el celular renueva su suscripción, se vuelve a vincular con la sesión abierta
+self.addEventListener('pushsubscriptionchange', (e) => {
+  e.waitUntil((async () => {
+    try {
+      const { clave } = await (await fetch('/api/push/clave', { credentials: 'same-origin' })).json();
+      const b = Uint8Array.from(atob(clave.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+      const sub = await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b });
+      await fetch('/api/push/suscribir', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-colegia': '1' }, body: JSON.stringify({ endpoint: sub.endpoint }) });
+    } catch { /* sin sesión: se vincula al abrir la app */ }
   })());
 });

@@ -29,15 +29,19 @@ export async function firmaVapid(env, endpoint) {
 
 // Avisa a todos los celulares de una persona. Quita las suscripciones que ya no existen.
 export async function avisarPush(env, usuarioId) {
+  const estados = [];
   try {
     const { results } = await env.DB.prepare('SELECT id, endpoint FROM push_suscripciones WHERE usuario_id = ?').bind(usuarioId).all();
     for (const s of results) {
       try {
         const { jwt, publica } = await firmaVapid(env, s.endpoint);
-        const r = await fetch(s.endpoint, { method: 'POST', headers: { authorization: `vapid t=${jwt}, k=${publica}`, ttl: '86400', urgency: 'normal', 'content-length': '0' } });
+        const r = await fetch(s.endpoint, { method: 'POST', headers: { authorization: `vapid t=${jwt}, k=${publica}`, ttl: '86400', urgency: 'high', 'content-length': '0' } });
+        estados.push(r.status);
         if (r.status === 404 || r.status === 410) await env.DB.prepare('DELETE FROM push_suscripciones WHERE id = ?').bind(s.id).run();
-      } catch (e) { console.error('push', e); }
+        else await env.DB.prepare("UPDATE push_suscripciones SET ultimo_estado = ?, ultimo_envio = datetime('now') WHERE id = ?").bind(String(r.status), s.id).run().catch(() => {});
+      } catch (e) { estados.push('error'); console.error('push', e); }
     }
   } catch (e) { console.error('push', e); }
+  return estados;
 }
 export { deB64u };

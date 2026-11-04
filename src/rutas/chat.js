@@ -92,6 +92,15 @@ export function rutasChat(r) {
     if (!yaEstaba) await copiarAlBuzon(env, ctx.colegioId, { usuarioId: ctx.usuario.id, telefono: 'app' }, '🔔 Listo: te avisaremos aquí cuando el colegio te escriba.', 'texto');
     return json({ ok: true });
   });
+  // Prueba: manda un aviso a los celulares de esta persona y dice si el servidor del celular lo aceptó
+  r.post('/api/push/probar', async (ctx, env) => {
+    exigir(ctx);
+    const n = (await env.DB.prepare('SELECT COUNT(*) AS n FROM push_suscripciones WHERE usuario_id = ?').bind(ctx.usuario.id).first()).n;
+    if (!n) return json({ ok: false, celulares: 0, mensaje: 'Este celular aún no está vinculado. Toca «Activar avisos de mensajes» y acepta el permiso.' });
+    await copiarAlBuzon(env, ctx.colegioId, { usuarioId: ctx.usuario.id, telefono: 'app' }, '🔔 Prueba de aviso: si ves esto en la notificación del celular, todo funciona.', 'texto');
+    const { results } = await env.DB.prepare('SELECT ultimo_estado FROM push_suscripciones WHERE usuario_id = ?').bind(ctx.usuario.id).all();
+    return json({ ok: true, celulares: n, estados: results.map((x) => x.ultimo_estado) });
+  });
   r.post('/api/push/baja', async (ctx, env) => {
     exigir(ctx);
     const d = await cuerpo(ctx.request, 3000);
