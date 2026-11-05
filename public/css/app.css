@@ -132,7 +132,9 @@ input[type="color"] { padding: 2px; height: 38px; }
 @media (max-width: 860px) {
   .marco { grid-template-columns: 1fr; }
   .lateral { position: fixed; inset: 0 auto 0 0; width: 270px; z-index: 20; transform: translateX(-100%); transition: transform .2s; }
-  .lateral.abierto { transform: none; box-shadow: 0 0 0 100vmax rgb(0 0 0 / 40%); }
+  .lateral.abierto { transform: none; }
+  #velo-menu { display: none; position: fixed; inset: 0; z-index: 19; background: rgb(0 0 0 / 40%); }
+  .lateral.abierto ~ #velo-menu, body:has(.lateral.abierto) #velo-menu { display: block; }
   .btn-menu { display: block; }
   .barra { padding: 10px 16px; }
   #vista { padding: 16px; }

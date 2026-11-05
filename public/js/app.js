@@ -281,14 +281,14 @@ function armarMarco() {
     pantallaIngreso();
   });
   $('#abrir-menu').addEventListener('click', () => $('#lateral').classList.toggle('abierto'));
-  // Tocar fuera del menú lo cierra (sin activar lo que había debajo)
-  document.addEventListener('click', (e) => {
-    const lat = $('#lateral');
-    if (!lat || !lat.classList.contains('abierto')) return;
-    if (lat.contains(e.target) || e.target.closest('#abrir-menu')) return;
-    lat.classList.remove('abierto');
-    e.preventDefault(); e.stopPropagation();
-  }, true);
+  // Tocar fuera del menú (a la derecha) lo cierra, sin cambiar de categoría ni activar lo que había debajo
+  document.getElementById('velo-menu')?.remove();
+  const velo = document.createElement('div');
+  velo.id = 'velo-menu';
+  document.body.appendChild(velo);
+  const cerrarMenu = (e) => { $('#lateral').classList.remove('abierto'); e.preventDefault(); e.stopPropagation(); };
+  velo.addEventListener('click', cerrarMenu);
+  velo.addEventListener('touchend', cerrarMenu, { passive: false });
   iniciarInsignia();
   import('./pwa.js').then((m) => { m.botonInstalar($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu' }); m.botonAvisos($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu btn-avisos' }); m.asegurarAvisos(); }).catch(() => {});
 }
