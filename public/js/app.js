@@ -281,6 +281,14 @@ function armarMarco() {
     pantallaIngreso();
   });
   $('#abrir-menu').addEventListener('click', () => $('#lateral').classList.toggle('abierto'));
+  // Tocar fuera del menú lo cierra (sin activar lo que había debajo)
+  document.addEventListener('click', (e) => {
+    const lat = $('#lateral');
+    if (!lat || !lat.classList.contains('abierto')) return;
+    if (lat.contains(e.target) || e.target.closest('#abrir-menu')) return;
+    lat.classList.remove('abierto');
+    e.preventDefault(); e.stopPropagation();
+  }, true);
   iniciarInsignia();
   import('./pwa.js').then((m) => { m.botonInstalar($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu' }); m.botonAvisos($('#instalar-menu'), { clase: 'btn-instalar btn-instalar-menu btn-avisos' }); m.asegurarAvisos(); }).catch(() => {});
 }
