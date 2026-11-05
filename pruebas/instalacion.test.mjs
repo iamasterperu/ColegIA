@@ -1,0 +1,16 @@
+import { crearDB } from './d1shim.mjs';
+import assert from 'node:assert/strict';
+import app from '../src/sin-assets.js';
+const DB = crearDB(['migrations/0000_esquema_base.sql','migrations/0001_admision_informes_demo.sql','migrations/0002_automatizacion.sql','migrations/0003_calificar_fotos.sql','migrations/0004_calificar_whatsapp.sql','migrations/0005_dni_personal.sql','migrations/0006_diploma_plantilla.sql','migrations/0007_dueno_invitaciones.sql','migrations/0008_chat_leido.sql','migrations/0009_push.sql','migrations/0010_push_estado.sql','migrations/0011_icono_colegio.sql']);
+DB._raw.exec(`INSERT INTO colegios (id, slug, nombre, es_demo, anio_escolar) VALUES (1,'talentusvilla','Colegio Talentus Villa',0,2026)`);
+const env = { DB, URL_BASE: 'https://x.test', ASSETS: { fetch: (req) => new Response('video:' + new URL(req.url).pathname) } };
+const go = (p) => app.fetch(new Request('https://x.test' + p, { redirect: 'manual' }), env, {});
+let r = await go('/i/talentusvilla/manifest.webmanifest'); const m = await r.json();
+assert.equal(m.scope, '/e/talentusvilla/'); assert.equal(m.start_url, '/e/talentusvilla/');
+r = await go('/e/talentusvilla/info'); assert.equal(r.status, 200); assert.match(await r.text(), /\/i\/talentusvilla\/manifest\.webmanifest/);
+r = await go('/colegio/talentusvilla'); assert.equal(r.status, 302); assert.equal(r.headers.get('location'), 'https://x.test/e/talentusvilla/info');
+r = await go('/e/talentusvilla/'); assert.equal(r.status, 200);
+r = await go('/'); assert.match(await r.text(), /El chat privado de tu colegio/);
+r = await go('/video/presentacion.mp4'); assert.equal(await r.text(), 'video:/video/presentacion.mp4');
+r = await go('/'); const home = await r.text(); assert.match(home, /<video[^>]*controls/); assert.ok(!/Talentus/i.test(home), 'la portada no menciona a ningún colegio');
+console.log('OK instalacion');

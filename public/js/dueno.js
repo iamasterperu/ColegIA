@@ -118,12 +118,12 @@ async function panel() {
       };
     };
     card.querySelector('.qr').onclick = async () => {
-      const origen = location.origin, pagina = `${origen}/colegio/${colegio.slug}`;
+      const origen = location.origin, pagina = `${origen}/e/${colegio.slug}/info`;
       const { qrPng } = await import('/js/qr.js');
       const png = qrPng(pagina, 600);
       det2.innerHTML = `<div class="peq">Pon esto en la web del colegio: la página con el botón y el QR, o solo el QR.</div>
         <div class="enlace">${esc(pagina)}</div><div class="fila"><button class="g cop" data-e="${esc(pagina)}">Copiar enlace de la página del colegio</button></div>
-        <div class="peq">App instalable: ${esc(origen)}/e/${esc(colegio.slug)} · Chat para familias nuevas: ${esc(origen)}/admision/${esc(colegio.slug)}</div>
+        <div class="peq">App instalable: ${esc(origen)}/e/${esc(colegio.slug)}/ · Chat para familias nuevas: ${esc(origen)}/admision/${esc(colegio.slug)}</div>
         <img src="${png}" alt="QR" width="200" height="200" style="margin:8px 0"><br><a class="g" style="display:inline-block;padding:8px 12px" download="qr-${esc(colegio.slug)}.png" href="${png}">Descargar QR (PNG)</a>`;
     };
     card.querySelector('.us').onclick = async () => {

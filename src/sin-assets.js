@@ -32,8 +32,13 @@ export default {
     if (/^\/(api|webhook|d|c|i|carta)\//.test(pathname)) return app.fetch(request, env, ctx);
     const dePagina = /^\/e\/([a-z0-9-]{3,30})\/?$/.exec(pathname);
     if (dePagina) return paginaColegio(env, dePagina[1]);
-    const dePublica = /^\/colegio\/([a-z0-9-]{3,30})\/?$/.exec(pathname);
+    // Video de presentación (archivos estáticos de Workers, fuera del paquete de la app)
+    if (pathname.startsWith('/video/') && env.ASSETS) return env.ASSETS.fetch(request);
+    // Página pública del colegio dentro del alcance de su app (para que se pueda instalar desde ahí)
+    const dePublica = /^\/e\/([a-z0-9-]{3,30})\/info\/?$/.exec(pathname);
     if (dePublica) return paginaColegio(env, dePublica[1], '/colegio.html');
+    const antigua = /^\/colegio\/([a-z0-9-]{3,30})\/?$/.exec(pathname);
+    if (antigua) return Response.redirect(`${new URL(request.url).origin}/e/${antigua[1]}/info`, 302);
     // La portada es la página pública de ColegIA; la app (inicio de sesión) vive en /entrar
     return servir(pathname === '/' ? '/colegia.html' : pathname === '/entrar' ? '/index.html' : pathname === '/panel-iamaster' ? '/dueno.html' : pathname.startsWith('/admision/') ? '/admision.html' : pathname);
   },

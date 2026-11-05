@@ -74,7 +74,7 @@ export function rutasChat(r) {
          FROM mensajes m JOIN usuarios u ON u.id = ? WHERE m.colegio_id = ? AND m.telefono = ? AND m.sentido = 'saliente' AND m.id > u.chat_leido_id ORDER BY m.id DESC LIMIT 1`,
     ).bind(ctx.usuario.id, ctx.colegioId, tel).first();
     const c = await env.DB.prepare('SELECT nombre, nombre_corto, slug, (icono IS NOT NULL) AS tiene_icono FROM colegios WHERE id = ?').bind(ctx.colegioId).first();
-    return json({ titulo: c?.nombre_corto || c?.nombre || 'ColegIA', url: c?.slug ? `/e/${c.slug}#/chat` : '/entrar#/chat', icono: c?.tiene_icono ? `/i/${c.slug}/icono-192.png` : '/icons/icon-192.png', cuerpo: f ? adaptar(f.texto).replace(/[*_]/g, '').slice(0, 140) : 'Tienes un mensaje nuevo', n: f?.n || 1 });
+    return json({ titulo: c?.nombre_corto || c?.nombre || 'ColegIA', url: c?.slug ? `/e/${c.slug}/#/chat` : '/entrar#/chat', icono: c?.tiene_icono ? `/i/${c.slug}/icono-192.png` : '/icons/icon-192.png', cuerpo: f ? adaptar(f.texto).replace(/[*_]/g, '').slice(0, 140) : 'Tienes un mensaje nuevo', n: f?.n || 1 });
   });
   // Suscripción push de este celular
   r.get('/api/push/clave', async (ctx, env) => { exigir(ctx); return json({ clave: (await claves(env)).publica }); });

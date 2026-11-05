@@ -88,10 +88,16 @@ footer{{padding-block:26px;font-size:13.5px;color:var(--muted);text-align:center
     <div class="top"><img src="data:image/png;base64,{logo}" alt="ColegIA"><a class="m" href="#contacto">Contacto</a><a class="inst" href="/entrar?instalar=1">📲 Instalar</a></div>
     <h1>El chat privado de tu colegio</h1>
     <p class="lead">Una app instalable en el celular, con su propio chat inteligente. Atiende a las familias a cualquier hora, ayuda a secretaría, dirección y docentes, y se prueba 30 días sin entregar datos de alumnos.</p>
-    <div class="btns"><a class="btn w" href="/entrar?instalar=1">📲 Instalar la app</a><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
+    <div class="btns"><a class="btn w" href="/entrar?instalar=1">📲 Instalar la app</a><a class="btn i" href="/entrar">Ingresar a mi colegio</a><a class="btn s" href="#video">▶ Ver el video</a><a class="btn s" href="#roles">Qué hace cada persona</a></div>
     <p class="note">Instálala en tu celular (Android o iPhone) y entra con tu DNI una sola vez: la app reconoce si eres padre, profesor, dirección, secretaría o contabilidad.</p>
   </div>
 </header>
+
+<section class="alt" id="video"><div class="wrap">
+  <h2>Mira todo lo que incluye ColegIA</h2>
+  <p class="sub">Un recorrido de menos de tres minutos: la app, el chat, cada rol del colegio, las notas al instante, la admisión con código QR, la seguridad y los planes.</p>
+  <video controls preload="metadata" playsinline poster="/video/portada.jpg" style="width:100%;max-width:900px;display:block;margin:20px auto 0;border-radius:18px;box-shadow:0 14px 40px rgba(11,31,58,.25);background:#0b1f3a"><source src="/video/presentacion.mp4" type="video/mp4">Tu navegador no puede reproducir el video.</video>
+</div></section>
 
 <section><div class="wrap">
   <h2>Menos llamadas, menos papeles, más tiempo para enseñar</h2>

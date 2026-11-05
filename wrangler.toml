@@ -12,6 +12,12 @@ migrations_dir = "migrations"
 [ai]
 binding = "AI"
 
+# Video de presentación de la portada (recursos/video). El Worker lo sirve solo en /video/*
+[assets]
+directory = "./recursos"
+binding = "ASSETS"
+run_worker_first = true
+
 # Variable que ya existía en el panel de Cloudflare; se declara aquí para que el despliegue no la borre
 [vars]
 URL_BASE = "https://colegia.iamasterperu.workers.dev"

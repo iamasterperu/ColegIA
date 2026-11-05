@@ -12,10 +12,10 @@ const colegioDe = async (env, slug) => {
 export function rutasInstalacion(r) {
   r.get('/i/:slug/manifest.webmanifest', async (ctx, env) => {
     const c = await colegioDe(env, ctx.params.slug);
-    const base = `/e/${c.slug}`, ic = `/i/${c.slug}`;
+    const base = `/e/${c.slug}/`, ic = `/i/${c.slug}`;
     const cuerpo = {
       id: base, name: c.nombre, short_name: nombreCorto(c), description: `Chat privado de ${c.nombre}: avisos, pagos, notas y mensajes, en tu celular`,
-      lang: 'es-PE', start_url: base, scope: '/', display: 'standalone', background_color: '#ffffff', theme_color: c.color_primario || '#00a884',
+      lang: 'es-PE', start_url: base, scope: base, display: 'standalone', background_color: '#ffffff', theme_color: c.color_primario || '#00a884',
       icons: [
         { src: `${ic}/icono-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: `${ic}/icono-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any' },
